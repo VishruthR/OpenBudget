@@ -88,7 +88,7 @@ mod tests {
             },
         ];
 
-        let transactions= parse_statement(&transactions_path)?;
+        let transactions = parse_statement(&transactions_path)?;
         assert_eq!(transactions_expected, transactions);
         
         Ok(())
