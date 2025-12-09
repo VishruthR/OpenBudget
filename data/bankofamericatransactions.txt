@@ -1,8 +1,8 @@
 Description                                                                         Summary Amt.
 Beginning balance as of 10/11/2025                                                      2,892.03
-Total credits                                                                           1,102.51
-Total debits                                                                           -2,556.65
-Ending balance as of 11/06/2025                                                         1,437.89
+Total credits                                                                           1,000.00
+Total debits                                                                           -26.10
+Ending balance as of 11/06/2025                                                         3,865.93
 
 
 Date        Description                                                                   Amount  Running Bal.
@@ -10,5 +10,5 @@ Date        Description                                                         
 10/20/2025  MTA*NYCT PAYGO 10/17 MOBILE PURCHASE NEW YORK NY                               -2.90      2,889.13
 10/20/2025  MTA*NYCT PAYGO 10/17 MOBILE PURCHASE NEW YORK NY                               -2.90      2,886.23
 10/20/2025  PAYPAL *NJ TRANSIT 10/17 PURCHASE 123-456-7890 NJ                              -5.30      2,880.93
-10/22/2025  VENMO DES:PAYMENT ID:XXXXX INDN:John Doe CO ID:XXXXX WEB      -15.00      1,982.67
-11/03/2025  Online Recurring transfer from CHK 1111 Confirmation# xxxxxxx; DOE, JANE    1,000.00      2,376.89
+10/22/2025  VENMO DES:PAYMENT ID:XXXXX INDN:John Doe CO ID:XXXXX WEB      -15.00      2,865.93
+11/03/2025  Online Recurring transfer from CHK 1111 Confirmation# xxxxxxx; DOE, JANE    1,000.00      3,865.93
