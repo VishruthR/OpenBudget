@@ -6,12 +6,11 @@ const HEADER_START: &str = "Date";
 
 pub fn parse_csv_statement<P: AsRef<Path>>(filename: P) -> Result<Vec<Transaction>, std::io::Error> {
     let mut reader = ReaderBuilder::new()
-        .quoting(false)
         .has_headers(false)
         .flexible(true)
         .from_path(filename)?;
 
-    // TODO: We filter out lines that may have errors, we should handle them explicitly
+    // TODO: We filter out lines that may have errors, we should handle them explicitly, line 16, 22
     let transactions = reader
         .records()
         .map_while(|item| item.ok())
@@ -19,16 +18,12 @@ pub fn parse_csv_statement<P: AsRef<Path>>(filename: P) -> Result<Vec<Transactio
         .skip_while(|item| !item.as_slice().starts_with(HEADER_START))
         // Skip header and "Beginning balance..." line
         .skip(2)
-        // TODO: We filter out lines that may have errors, we should handle them explicitly
-        .filter_map(|transaction_record: csv::StringRecord| -> Option<Transaction> {
-            transaction_record.deserialize(None).ok()
-        })
+        .filter_map(|transaction_record: csv::StringRecord| transaction_record.deserialize(None).ok())
         .collect();
 
     Ok(transactions)
 }
 
-// TODO: GET TESTS RUNNING, LOOK INTO DESCRIPTION PARSER HANDLING QUOTES PROPERLY!!!
 #[cfg(test)]
 mod tests {
     use std::path::PathBuf;
@@ -44,7 +39,7 @@ mod tests {
         let transactions_expected = vec![
             Transaction {
                 date: NaiveDate::from_ymd_opt(2025, 11, 10).unwrap(),
-                description: "Zelle payment from JOHN DOE for \"food\"; Conf# 11bu1u1".to_string(),
+                description: "Zelle payment from JOHN DOE for food\"; Conf# 11bu1u1\"".to_string(),
                 amount: 5.00,
             },
             Transaction {
@@ -131,11 +126,7 @@ mod tests {
 
         let transactions = parse_csv_statement(&transactions_path)?;
 
-        // assert_eq!(transactions, transactions_expected);
-        for (transaction, transaction_expected) in zip(transactions, transactions_expected) {
-            assert_eq!(transaction, transaction_expected);
-        }
-        
+        assert_eq!(transactions, transactions_expected);
         Ok(())
     }
 }
