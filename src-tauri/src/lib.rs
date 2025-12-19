@@ -5,7 +5,11 @@ mod importers {
     pub(crate) mod wells_fargo;
     pub(crate) mod types;
 }
+mod transactions {
+    pub(crate) mod queries;
+}
 mod db;
+mod types;
 
 #[tauri::command]
 fn greet(name: &str) -> String {

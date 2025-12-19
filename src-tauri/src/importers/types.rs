@@ -5,17 +5,17 @@ use rust_decimal::Decimal;
 use std::str::FromStr;
 
 #[derive(Debug, PartialEq, Clone, serde::Deserialize)]
-pub struct Transaction {
+pub struct TransactionImport {
     #[serde(deserialize_with = "de_date_from_str")]
     pub date: NaiveDate,
-    pub description: String,
+    pub name: String,
     #[serde(deserialize_with = "de_decimal_from_money_str")]
     pub amount: Decimal,
 }
 
-impl fmt::Display for Transaction {
+impl fmt::Display for TransactionImport {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Transaction: {}, {}, {}", self.date, self.description, self.amount)
+        write!(f, "Transaction: {}, {}, {}", self.date, self.name, self.amount)
     }
 }
 
