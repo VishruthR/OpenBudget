@@ -7,8 +7,8 @@ CREATE TABLE IF NOT EXISTS account (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     bank_id INTEGER NOT NULL,
     account_type TEXT NOT NULL CHECK(account_type IN ('SAVINGS', 'CHECKINGS')),
-    initial_balance REAL NOT NULL DEFAULT 0.0,
-    current_balance REAL NOT NULL DEFAULT 0.0,
+    initial_balance_cents INTEGER NOT NULL DEFAULT 0.0,
+    current_balance_cents INTEGER NOT NULL DEFAULT 0.0,
     FOREIGN KEY (bank_id) REFERENCES bank(id) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_account_bank_id ON account(bank_id);
@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS category (
 CREATE TABLE IF NOT EXISTS "transaction" (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    amount REAL NOT NULL,
+    amount_cents INTEGER NOT NULL,
     date TEXT NOT NULL,
     account_id INTEGER NOT NULL,
     category_id INTEGER,
