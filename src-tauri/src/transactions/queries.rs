@@ -4,8 +4,7 @@ use chrono::NaiveDate;
 use rust_decimal::dec;
 
 pub async fn get_transactions(pool: &Pool<Sqlite>, limit: Option<i64>) -> Result<Vec<Transaction>, sqlx::Error> {
-    // TODO: Look into supporting limit using prepared statements, maybe have to do in separate function
-    let mut query = "SELECT * FROM 'transaction' ORDER BY date, id LIMIT $1".to_owned();
+    let query = "SELECT * FROM 'transaction' ORDER BY date, id LIMIT $1".to_owned();
 
     // Negative value returns all rows
     let lim = limit.unwrap_or(-1);
