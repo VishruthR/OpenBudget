@@ -4,11 +4,11 @@ use chrono::NaiveDate;
 use rust_decimal::dec;
 
 pub async fn get_transactions(pool: &Pool<Sqlite>, limit: Option<i64>) -> Result<Vec<Transaction>, sqlx::Error> {
-    let query = "SELECT * FROM 'transaction' ORDER BY date, id LIMIT $1".to_owned();
+    let query = "SELECT id, name, amount_cents, date, account_id, category_id FROM 'transaction' ORDER BY date, id LIMIT $1";
 
     // Negative value returns all rows
     let lim = limit.unwrap_or(-1);
-    let res: Vec<Transaction> = sqlx::query_as(query.as_str())
+    let res: Vec<Transaction> = sqlx::query_as(query)
         .bind(lim)
         .fetch_all(pool).await?;
 
@@ -27,7 +27,7 @@ mod tests {
                 Cents(dec!(-5.77)),
                 NaiveDate::from_ymd_opt(2025, 12, 15).unwrap(),
                 1,
-                1
+                Some(1)
             ),
             Transaction::new(
                 2,
@@ -35,7 +35,7 @@ mod tests {
                 Cents(dec!(-10.90)),
                 NaiveDate::from_ymd_opt(2025, 12, 16).unwrap(),
                 1,
-                1
+                Some(1)
             ),
             Transaction::new(
                 4,
@@ -43,7 +43,7 @@ mod tests {
                 Cents(dec!(-0.70)),
                 NaiveDate::from_ymd_opt(2025, 12, 16).unwrap(),
                 1,
-                1
+                Some(1)
             ),
             Transaction::new(
                 3,
@@ -51,7 +51,7 @@ mod tests {
                 Cents(dec!(-1.90)),
                 NaiveDate::from_ymd_opt(2025, 12, 17).unwrap(),
                 1,
-                1
+                Some(1)
             ),
         ]
     }

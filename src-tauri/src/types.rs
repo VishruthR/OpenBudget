@@ -54,7 +54,7 @@ pub struct Transaction {
     pub amount: Cents,
     pub date: NaiveDate,
     account_id: u64,
-    category_id: u64,
+    category_id: Option<u64>,
 }
 
 impl Transaction {
@@ -66,7 +66,7 @@ impl Transaction {
         &self.account_id
     }
 
-    pub fn category_id(&self) -> &u64 {
+    pub fn category_id(&self) -> &Option<u64> {
         &self.category_id
     }
 
@@ -76,7 +76,7 @@ impl Transaction {
         amount: Cents,
         date: NaiveDate,
         account_id: u64,
-        category_id: u64
+        category_id: Option<u64>
     ) -> Self {
         Transaction {
             id, name, amount, date, account_id, category_id
@@ -86,7 +86,7 @@ impl Transaction {
 
 impl fmt::Display for Transaction {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Transaction: {} {} {} {}, {}, {}", 
+        write!(f, "Transaction: {} {} {} {}, {:?}, {}", 
             self.id, self.date, self.name, self.amount, self.category_id, self.account_id)
     }
 }
