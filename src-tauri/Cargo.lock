@@ -2685,21 +2685,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "open-budget"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "csv",
- "rust_decimal",
- "serde",
- "serde_json",
- "sqlx",
- "tauri",
- "tauri-build",
- "tauri-plugin-opener",
-]
-
-[[package]]
 name = "openssl"
 version = "0.10.75"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2826,6 +2811,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "88b39c9bfcfc231068454382784bb460aae594343fb030d46e9f50a645418412"
 dependencies = [
  "base64ct",
+]
+
+[[package]]
+name = "pennyful"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "csv",
+ "rust_decimal",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-opener",
 ]
 
 [[package]]
