@@ -13,6 +13,7 @@
   import { categoriesApi } from "$lib/api/categories";
   import type { Category, TransactionWithAccount, PaginedSortedTransactionsResponse } from "$lib/types";
   import Icon from "@iconify/svelte";
+    import { onMount } from "svelte";
 
   interface Props {
     height?: string;
@@ -35,11 +36,16 @@
   })
 
   let categories: Category[] = $state([]);
-  $effect(() => {
-    categoriesApi.getCategoryDetails()
-      .then((details) => { categories = Object.values(details); })
-      .catch((e) => console.error(e));
-  });
+  const loadCategories = async () => {
+    try {
+      console.log("loading categories");
+      categories = Object.values(await categoriesApi.getCategoryDetails());
+      console.log(categories);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  onMount(loadCategories)
 
   async function handleCategoryChange(txn: TransactionWithAccount, categoryId: number) {
     const category = categories.find((c) => c.id === categoryId);

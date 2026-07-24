@@ -4,21 +4,23 @@
 -->
 
 <script lang="ts">
-  import type { TransactionImport } from "$lib/types";
   import Flashcard from "$lib/components/Flashcard.svelte";
   import Button from "$lib/components/Button.svelte";
+    import type { FlashcardTransaction } from "$lib/types";
 
   interface Props {
-    transactions: TransactionImport[];
+    transactions: FlashcardTransaction[];
+    currentIndex: number;
     discardText?: string;
     acceptText?: string;
-    onDiscard: (transaction: TransactionImport) => void;
-    onAccept: (transaction: TransactionImport) => void;
+    onDiscard: (transaction: FlashcardTransaction) => void;
+    onAccept: (transaction: FlashcardTransaction) => void;
     onComplete: () => void;
   }
 
   let {
     transactions,
+    currentIndex = $bindable(0), 
     discardText = "Delete",
     acceptText = "Accept",
     onDiscard,
@@ -26,7 +28,6 @@
     onComplete,
   }: Props = $props();
 
-  let currentIndex = $state(0);
   let throwDirection = $state<"left" | "right" | null>(null);
   let isAnimating = $state(false);
 
@@ -38,7 +39,7 @@
 
   // Get up to 3 cards to display
   let visibleCards = $derived.by(() => {
-    const cards: TransactionImport[] = [];
+    const cards: FlashcardTransaction[] = [];
     for (let i = 0; i < 3 && currentIndex + i < totalCards; i++) {
       cards.push(transactions[currentIndex + i]);
     }
@@ -50,7 +51,6 @@
       const transaction = currentTransaction;
       const direction = throwDirection;
 
-      currentIndex++;
       throwDirection = null;
       isAnimating = false;
 
@@ -87,7 +87,7 @@
 <div class="flashcard-deck">
   <div class="cards-container">
     {#if !isComplete}
-      {#each visibleCards as card, index (`${card.name}-${card.date}-${card.amount}-${index}`)}
+      {#each visibleCards as card, index (`${card.transaction.name}-${card.transaction.date}-${card.transaction.amount}-${index}`)}
         <div
           class="card-wrapper"
           class:card-back-2={index === 2}

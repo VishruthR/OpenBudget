@@ -43,7 +43,14 @@ interface PaginedSortedTransactionsResponse {
   num_transactions: number;
 }
 
-type TransactionImport = Omit<Transaction, "id">;
+type TransactionWithoutId = Omit<Transaction, "id">;
+interface FlashcardTransaction {
+  transaction: TransactionWithoutId;
+  category_name: string;
+  category_color: string;
+  category_icon: string | null;
+  account_name: string;
+}
 
 interface PlaidAccount {
   account_id: string;
@@ -101,4 +108,4 @@ interface DropdownOption {
     content?: Snippet;
 }
 
-export type { Category, CategoryDetails, CategoryOverview, Transaction, TransactionImport, AccountType, Account, DropdownOption, PlaidAccount, PlaidItem, AccountsGetResponse, LinkedInstitution, TransactionWithAccount, PaginedSortedTransactionsResponse };
+export type { Category, CategoryDetails, CategoryOverview, Transaction, TransactionWithoutId, AccountType, Account, DropdownOption, PlaidAccount, PlaidItem, AccountsGetResponse, LinkedInstitution, TransactionWithAccount, PaginedSortedTransactionsResponse, FlashcardTransaction };

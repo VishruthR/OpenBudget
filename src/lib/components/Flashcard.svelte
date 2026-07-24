@@ -13,51 +13,45 @@
 -->
 
 <script lang="ts">
-    import type { TransactionImport } from "$lib/types";
+    import type { FlashcardTransaction } from "$lib/types";
     import CategoryPill from "$lib/components/CategoryPill.svelte";
     import { formatDate, formatSignedCurrencyChange, isPositiveAmount } from "$lib/utils/format";
-    import { categoriesApi } from "$lib/api/categories";
   
     interface Props {
-      transaction: TransactionImport;
+      transaction: FlashcardTransaction;
     }
   
     let { transaction }: Props = $props();
-
-    // TODO: Handle errors in case category doesn't exist
-    const category = $derived(await categoriesApi.getCategoryById(transaction.category_id));
   </script>
   
   <div class="flashcard">
     <div class="field">
       <span class="label">Name</span>
-      <span class="value wrap">{transaction.name}</span>
+      <span class="value wrap">{transaction.transaction.name}</span>
     </div>
   
     <div class="row">
       <div class="field">
         <span class="label">Date</span>
-        <span class="value">{formatDate(transaction.date)}</span>
+        <span class="value">{formatDate(transaction.transaction.date)}</span>
       </div>
       <div class="field">
         <span class="label">Amount</span>
-        <span class="value {isPositiveAmount(transaction.amount) ? 'positive' : 'negative'}">
-          {formatSignedCurrencyChange(transaction.amount)}
+        <span class="value {isPositiveAmount(transaction.transaction.amount) ? 'positive' : 'negative'}">
+          {formatSignedCurrencyChange(transaction.transaction.amount)}
         </span>
       </div>
     </div>
   
     <div class="field">
       <span class="label">Category</span>
-      {#if category}
       <div>
         <CategoryPill
-          name={category.name}
-          icon={category.icon}
-          textColor={category.color}
+          name={transaction.category_name}
+          icon={transaction.category_icon ?? ""}
+          textColor={transaction.category_color}
         />
       </div>
-      {/if}
     </div>
   </div>
   
