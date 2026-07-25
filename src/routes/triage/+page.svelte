@@ -1,17 +1,18 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import Icon from "@iconify/svelte";
-  import Button from "$lib/components/Button.svelte";
-  import CategoryTable from "$lib/components/CategoryTable.svelte";
-  import CategoryFormModal from "$lib/components/CategoryFormModal.svelte";
-  import DeleteCategoryModal from "$lib/components/DeleteCategoryModal.svelte";
-  import { categoriesApi } from "$lib/api/categories";
+    import { categoriesApi } from "$lib/api/categories";
   import type { CategoryOverview, TransactionWithAccount } from "$lib/types";
     import FlashcardDeck from "$lib/components/FlashcardDeck.svelte";
     import { transactionsApi } from "$lib/api/transactions";
     import UncategorizedFlashcard from "$lib/components/UncategorizedFlashcard.svelte";
+    import Button from "$lib/components/Button.svelte";
 
   let currentIndex = $state(0);
+  let nextIndexIncrement = $state(0);
+  let isAnimating = $state(false);
+  let throwDirection = $state<"left" | "right" | null>(null);
+  let lastThrowDirection = $state<"left" | "right" | null>(null);
+  let reverse = $state<boolean | null>(null);
   
   let transactions = $state<TransactionWithAccount[]>([]);
   async function loadTransactions() {
@@ -29,24 +30,78 @@
   }
   onMount(loadCategories);
 
-  const handleTransactionAccept = () => {
-    currentIndex++;
+  const handleCategoryUpdate = (transactionId: number, categoryId: number) => {
+    transactionsApi.updateTransactionCategory(transactionId, categoryId);
+    handleNext();
+    console.log("updated!");
+  }
+
+  const handleAnimationEnd = () => {
+    isAnimating = false;
+    lastThrowDirection = throwDirection;
+    throwDirection = null;
+    reverse = null;
+    currentIndex += nextIndexIncrement;
+    nextIndexIncrement = 0;
+    console.log("done animating");
+  }
+
+  const handleNext = () => {
+    isAnimating = true;
+
+    // Alternate throwing directions
+    if (lastThrowDirection == "right") {
+      throwDirection = "left";
+    } else {
+      throwDirection = "right";
+    }
+
+    reverse = false;
+    nextIndexIncrement = 1;
     console.log("accepted!");
   }
-  const handleTransactionDiscard = () => {
-    currentIndex++;
+
+  const handleBack = () => {
+    if (currentIndex === 0) return;
+    isAnimating = true;
+
+    // TODO: Bug, if they spam back, then the cards will all come from the same direction
+    throwDirection = lastThrowDirection;
+    reverse = true;
+
+    currentIndex -= 1;
     console.log("discarded");
   }
+
   const handleReviewComplete = () => {
     console.log("review complete");
   }
 </script>
+
+{#snippet nextButton()}
+  <Button
+    onclick={handleNext}
+    disabled={isAnimating}
+  >
+    Next
+  </Button>
+{/snippet}
+
+{#snippet backButton()}
+  <Button
+    onclick={handleBack}
+    disabled={isAnimating}
+  >
+    Back
+  </Button>
+{/snippet}
 
 {#snippet card(transaction: TransactionWithAccount)}
   {#if !loadingCategories}
     <UncategorizedFlashcard
       transaction={transaction}
       categories={categories}
+      {handleCategoryUpdate}
     />
   {/if}
 {/snippet}
@@ -65,12 +120,13 @@
     <div class="flashcard-container">
       <FlashcardDeck
         bind:currentIndex
-        transactions={transactions}
-        discardText="Delete"
-        acceptText="Submit"
-        card={card}
-        onDiscard={handleTransactionDiscard}
-        onAccept={handleTransactionAccept}
+        {transactions}
+        bind:throwDirection
+        bind:reverse
+        {card}
+        {nextButton}
+        {backButton}
+        onAnimationEnd={handleAnimationEnd}
         onComplete={handleReviewComplete}
       />
     </div>

@@ -16,17 +16,17 @@
     import type { Category, TransactionWithAccount } from "$lib/types";
     import { formatDate, formatSignedCurrencyChange, isPositiveAmount } from "$lib/utils/format";
     import CategoryCombobox from "./CategoryCombobox.svelte";
-    import { transactionsApi } from "$lib/api/transactions";
   
     interface Props {
       transaction: TransactionWithAccount;
       categories: Category[];
+      handleCategoryUpdate: (transactionId: number, categoryId: number) => void;
     }
   
-    let { transaction, categories }: Props = $props();
+    let { transaction, categories, handleCategoryUpdate }: Props = $props();
 
-    const handleCategoryUpdate = (categoryId: number) => {
-      transactionsApi.updateTransactionCategory(transaction.transaction.id, categoryId);
+    const onCategoryUpdate = (categoryId: number) => {
+      handleCategoryUpdate(transaction.transaction.id, categoryId);
     }
   </script>
   
@@ -55,7 +55,7 @@
         <CategoryCombobox 
           categories={categories} 
           value={transaction.transaction.category_id}
-          onSelect={handleCategoryUpdate}
+          onSelect={onCategoryUpdate}
         />
       </div>
     </div>

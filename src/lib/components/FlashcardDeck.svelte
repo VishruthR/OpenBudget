@@ -4,35 +4,38 @@
 -->
 
 <script lang="ts">
-  import Button from "$lib/components/Button.svelte";
-    import type { TransactionWithAccount } from "$lib/types";
-    import type { Snippet } from "svelte";
+  import type { TransactionWithAccount } from "$lib/types";
+  import type { Snippet } from "svelte";
 
   interface Props {
     transactions: TransactionWithAccount[];
     currentIndex: number;
-    discardText?: string;
-    acceptText?: string;
+    throwDirection: "left" | "right" | null;
+    reverse: boolean | null;
     card: Snippet<[TransactionWithAccount]>;
-    onDiscard: (transaction: TransactionWithAccount) => void;
-    onAccept: (transaction: TransactionWithAccount) => void;
+    nextButton: Snippet<[]>;
+    backButton: Snippet<[]>;
+    onAnimationEnd: () => void;
     onComplete: () => void;
   }
 
   let {
     transactions,
     currentIndex = $bindable(0), 
-    discardText = "Delete",
-    acceptText = "Accept",
+    throwDirection = $bindable(null),
+    reverse = $bindable(null),
     card,
-    onDiscard,
-    onAccept,
+    nextButton,
+    backButton,
+    onAnimationEnd,
     onComplete,
   }: Props = $props();
-
-  let throwDirection = $state<"left" | "right" | null>(null);
-  let isAnimating = $state(false);
-
+  
+  // Should accept currentIndex, throwDirection, and Reverse?
+  // use $effect to listen to changes on any of the three above (they should always change in coordination) to update and play animation?
+  // User should also just pass in left and right buttons as snippert bh
+  // have to update currentIndex after animations are over, so you should include that as a callback
+  // TODO: Have claude write a docstring on how to use this component
   let totalCards = $derived(transactions.length);
   let currentTransaction = $derived(
     currentIndex < totalCards ? transactions[currentIndex] : null
@@ -50,35 +53,14 @@
 
   function handleAnimationEnd() {
     if (throwDirection && currentTransaction) {
-      const transaction = currentTransaction;
-      const direction = throwDirection;
-
       throwDirection = null;
-      isAnimating = false;
+      reverse = null;
 
-      if (direction === "left") {
-        onDiscard(transaction);
-      } else {
-        onAccept(transaction);
-      }
       checkComplete();
+      onAnimationEnd();
     }
   }
-
-  function handleDiscard() {
-    if (currentTransaction && !isAnimating) {
-      isAnimating = true;
-      throwDirection = "left";
-    }
-  }
-
-  function handleAccept() {
-    if (currentTransaction && !isAnimating) {
-      isAnimating = true;
-      throwDirection = "right";
-    }
-  }
-
+  
   function checkComplete() {
     if (currentIndex >= totalCards) {
       onComplete();
@@ -95,8 +77,10 @@
           class:card-back-2={index === 2}
           class:card-back-1={index === 1}
           class:card-front={index === 0}
-          class:throw-left={index === 0 && throwDirection === "left"}
-          class:throw-right={index === 0 && throwDirection === "right"}
+          class:throw-left={index === 0 && throwDirection === "left" && !reverse}
+          class:throw-right={index === 0 && throwDirection === "right" && !reverse}
+          class:recover-left={index === 0 && throwDirection === "left" && !!reverse}
+          class:recover-right={index === 0 && throwDirection === "right" && !!reverse}
           onanimationend={index === 0 ? handleAnimationEnd : undefined}
         >
           {@render card(visibleCard)}
@@ -106,25 +90,13 @@
   </div>
 
   <div class="controls">
-    <Button
-      color="var(--loss-red-50)"
-      onclick={handleDiscard}
-      disabled={isComplete || isAnimating}
-    >
-      {discardText}
-    </Button>
-
+    {@render backButton()}
+    
     <span class="counter">
       {isComplete ? totalCards : currentIndex + 1}/{totalCards}
     </span>
 
-    <Button
-      color="var(--profit-green-50)"
-      onclick={handleAccept}
-      disabled={isComplete || isAnimating}
-    >
-      {acceptText}
-    </Button>
+    {@render nextButton()}
   </div>
 </div>
 
@@ -214,6 +186,39 @@
 
   .throw-right {
     animation: throw-right 0.35s ease-out forwards;
+    z-index: 10;
+  }
+  
+  /* Recover animations */
+  @keyframes recover-left {
+    0% {
+      transform: translate(-150px, -100px) rotate(-15deg);
+      opacity: 0;
+    }
+    100% {
+      transform: translateY(0) rotate(0deg);
+      opacity: 1;
+    }
+  }
+
+  @keyframes recover-right {
+    0% {
+      transform: translate(150px, -100px) rotate(15deg);
+      opacity: 0;
+    }
+    100% {
+      transform: translateY(0) rotate(0deg);
+      opacity: 1;
+    }
+  }
+
+  .recover-left {
+    animation: recover-left 0.35s ease-out forwards;
+    z-index: 10;
+  }
+
+  .recover-right {
+    animation: recover-right 0.35s ease-out forwards;
     z-index: 10;
   }
 </style>
