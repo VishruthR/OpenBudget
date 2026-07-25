@@ -4,17 +4,18 @@
 -->
 
 <script lang="ts">
-  import Flashcard from "$lib/components/Flashcard.svelte";
   import Button from "$lib/components/Button.svelte";
-    import type { FlashcardTransaction } from "$lib/types";
+    import type { TransactionWithAccount } from "$lib/types";
+    import type { Snippet } from "svelte";
 
   interface Props {
-    transactions: FlashcardTransaction[];
+    transactions: TransactionWithAccount[];
     currentIndex: number;
     discardText?: string;
     acceptText?: string;
-    onDiscard: (transaction: FlashcardTransaction) => void;
-    onAccept: (transaction: FlashcardTransaction) => void;
+    card: Snippet<[TransactionWithAccount]>;
+    onDiscard: (transaction: TransactionWithAccount) => void;
+    onAccept: (transaction: TransactionWithAccount) => void;
     onComplete: () => void;
   }
 
@@ -23,6 +24,7 @@
     currentIndex = $bindable(0), 
     discardText = "Delete",
     acceptText = "Accept",
+    card,
     onDiscard,
     onAccept,
     onComplete,
@@ -39,7 +41,7 @@
 
   // Get up to 3 cards to display
   let visibleCards = $derived.by(() => {
-    const cards: FlashcardTransaction[] = [];
+    const cards: TransactionWithAccount[] = [];
     for (let i = 0; i < 3 && currentIndex + i < totalCards; i++) {
       cards.push(transactions[currentIndex + i]);
     }
@@ -87,7 +89,7 @@
 <div class="flashcard-deck">
   <div class="cards-container">
     {#if !isComplete}
-      {#each visibleCards as card, index (`${card.transaction.name}-${card.transaction.date}-${card.transaction.amount}-${index}`)}
+      {#each visibleCards as visibleCard, index (`${visibleCard.transaction.name}-${visibleCard.transaction.date}-${visibleCard.transaction.amount}-${index}`)}
         <div
           class="card-wrapper"
           class:card-back-2={index === 2}
@@ -97,7 +99,7 @@
           class:throw-right={index === 0 && throwDirection === "right"}
           onanimationend={index === 0 ? handleAnimationEnd : undefined}
         >
-          <Flashcard transaction={card} />
+          {@render card(visibleCard)}
         </div>
       {/each}
     {/if}

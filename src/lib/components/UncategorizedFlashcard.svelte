@@ -13,15 +13,21 @@
 -->
 
 <script lang="ts">
-    import type { FlashcardTransaction } from "$lib/types";
-    import CategoryPill from "$lib/components/CategoryPill.svelte";
+    import type { Category, TransactionWithAccount } from "$lib/types";
     import { formatDate, formatSignedCurrencyChange, isPositiveAmount } from "$lib/utils/format";
+    import CategoryCombobox from "./CategoryCombobox.svelte";
+    import { transactionsApi } from "$lib/api/transactions";
   
     interface Props {
-      transaction: FlashcardTransaction;
+      transaction: TransactionWithAccount;
+      categories: Category[];
     }
   
-    let { transaction }: Props = $props();
+    let { transaction, categories }: Props = $props();
+
+    const handleCategoryUpdate = (categoryId: number) => {
+      transactionsApi.updateTransactionCategory(transaction.transaction.id, categoryId);
+    }
   </script>
   
   <div class="flashcard">
@@ -46,10 +52,10 @@
     <div class="field">
       <span class="label">Category</span>
       <div>
-        <CategoryPill
-          name={transaction.category_name}
-          icon={transaction.category_icon ?? ""}
-          textColor={transaction.category_color}
+        <CategoryCombobox 
+          categories={categories} 
+          value={transaction.transaction.category_id}
+          onSelect={handleCategoryUpdate}
         />
       </div>
     </div>

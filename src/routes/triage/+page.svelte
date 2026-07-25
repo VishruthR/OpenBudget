@@ -9,6 +9,7 @@
   import type { CategoryOverview, TransactionWithAccount } from "$lib/types";
     import FlashcardDeck from "$lib/components/FlashcardDeck.svelte";
     import { transactionsApi } from "$lib/api/transactions";
+    import UncategorizedFlashcard from "$lib/components/UncategorizedFlashcard.svelte";
 
   let currentIndex = $state(0);
   
@@ -20,8 +21,11 @@
   $inspect(transactions);
 
   let categories = $state<CategoryOverview[]>([]);
+  let loadingCategories = $state<boolean>(false);
   async function loadCategories() {
+    loadingCategories = true;
     categories = await categoriesApi.getCategoryOverviews();
+    loadingCategories = false;
   }
   onMount(loadCategories);
 
@@ -37,6 +41,15 @@
     console.log("review complete");
   }
 </script>
+
+{#snippet card(transaction: TransactionWithAccount)}
+  {#if !loadingCategories}
+    <UncategorizedFlashcard
+      transaction={transaction}
+      categories={categories}
+    />
+  {/if}
+{/snippet}
 
 <main class="page">
   <header class="page-header">
@@ -55,6 +68,7 @@
         transactions={transactions}
         discardText="Delete"
         acceptText="Submit"
+        card={card}
         onDiscard={handleTransactionDiscard}
         onAccept={handleTransactionAccept}
         onComplete={handleReviewComplete}
