@@ -35,7 +35,7 @@
 <Combobox
   variant="slim"
   {options}
-  value={String(value)}
+  value={value !== null ? String(value) : null}
   item={categoryItem}
   onSelect={(v) => {
     if (v !== null) onSelect(Number(v));

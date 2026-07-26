@@ -3,6 +3,11 @@
  * to MM/DD/YYYY format
  */
 export function formatDate(date: string): string {
+  // Simple guard
+  if (date.length !== "YYYY-MM-DD".length) {
+    return "";
+  }
+
   const dateParts = date.split("-");
 
   const month = dateParts[1];
