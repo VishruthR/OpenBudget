@@ -1,6 +1,37 @@
 <!-- @component
-  Displays a deck of transaction flashcards with discard/accept actions.
-  Shows up to 3 cards stacked, with controls to process each card.
+  A stacked "flashcard" deck with throw/recover animations. Renders up to 3 cards
+  stacked on top of one another and animates the front card off-screen when advancing
+  (throw) or back into place when reversing (recover). 
+  ## Driving the deck
+  Bind a reference and call its exported methods:
+
+  ```svelte
+  <FlashcardDeck
+    bind:this={deck}
+    bind:index
+    bind:isAnimating
+    {transactions}
+    {card}
+    {nextButton}
+    {backButton}
+  />
+  ```
+  Exports:
+  - `deck.next(dir?)` — throws the current card out and advances `index` by 1.
+  - `deck.back(dir?)` — steps `index` back by 1 and recovers the previous card in.
+
+  `dir` is `"auto" | "left" | "right"` (default `"auto"`). `"auto"` alternates the throw
+  direction by index parity. You can also pass an explicity animation direction. 
+  
+  ## Props
+  - `transactions` — the full ordered list; the deck shows `index` plus the next two behind it.
+  - `index` (bindable) — the current card's position; read it for a progress counter.
+  - `isAnimating` (bindable) — true while a throw/recover is in flight.
+  - `card` — `Snippet<[transaction]>` rendering a single card. Give each transaction a
+    stable identity (id) so animations don't glitch when `index` changes.
+  - `nextButton` / `backButton` — `Snippet<[]>` for the two controls.
+
+  See src/routes/triage/+page.svelte for a working example.
 -->
 
 <script lang="ts">
@@ -9,82 +40,111 @@
 
   interface Props {
     transactions: TransactionWithAccount[];
-    currentIndex: number;
-    throwDirection: "left" | "right" | null;
-    reverse: boolean | null;
+    index: number;
+    isAnimating: boolean;
     card: Snippet<[TransactionWithAccount]>;
     nextButton: Snippet<[]>;
     backButton: Snippet<[]>;
-    onAnimationEnd: () => void;
-    onComplete: () => void;
   }
 
   let {
     transactions,
-    currentIndex = $bindable(0), 
-    throwDirection = $bindable(null),
-    reverse = $bindable(null),
+    index = $bindable(0), 
+    isAnimating = $bindable(false),
     card,
     nextButton,
     backButton,
-    onAnimationEnd,
-    onComplete,
   }: Props = $props();
+ 
+  interface Animation {
+    card: Snippet<[TransactionWithAccount]>;
+    transaction: TransactionWithAccount | null;
+    direction: "left" | "right";
+    mode: "out" | "in";
+  }
+  let animationParams = $state<Animation | null>(null);
   
-  // Should accept currentIndex, throwDirection, and Reverse?
-  // use $effect to listen to changes on any of the three above (they should always change in coordination) to update and play animation?
-  // User should also just pass in left and right buttons as snippert bh
-  // have to update currentIndex after animations are over, so you should include that as a callback
-  // TODO: Have claude write a docstring on how to use this component
   let totalCards = $derived(transactions.length);
   let currentTransaction = $derived(
-    currentIndex < totalCards ? transactions[currentIndex] : null
+    index < totalCards ? transactions[index] : null
   );
-  let isComplete = $derived(currentIndex >= totalCards);
+  let isComplete = $derived(index >= totalCards);
 
   // Get up to 3 cards to display
   let visibleCards = $derived.by(() => {
     const cards: TransactionWithAccount[] = [];
-    for (let i = 0; i < 3 && currentIndex + i < totalCards; i++) {
-      cards.push(transactions[currentIndex + i]);
+    for (let i = 0; i < 3 && index + i < totalCards; i++) {
+      cards.push(transactions[index + i]);
     }
     return cards;
   });
 
-  function handleAnimationEnd() {
-    if (throwDirection && currentTransaction) {
-      throwDirection = null;
-      reverse = null;
+  const getDirectionByIndex = (idx: number): "right" | "left" => {
+    return idx % 2 == 0 ? "right" : "left";
+  }
+  export const next = (dir: "auto" | "left" | "right" = "auto") => {
+    if (index >= transactions.length) { return; }
+    isAnimating = true;
 
-      checkComplete();
-      onAnimationEnd();
+    if (dir === "auto") {
+      dir = getDirectionByIndex(index);
+    }
+    animationParams = {
+      card: card,
+      transaction: currentTransaction,
+      direction: dir,
+      mode: "out"
+    }
+
+    index++;
+  }
+  export const back = (dir: "auto" | "left" | "right" = "auto") => {
+    if (index == 0) { return; }
+    isAnimating = true;
+    index--;
+
+    if (dir === "auto") {
+      dir = getDirectionByIndex(index);
+    }
+    animationParams = {
+      card: card,
+      transaction: currentTransaction,
+      direction: dir,
+      mode: "in"
     }
   }
-  
-  function checkComplete() {
-    if (currentIndex >= totalCards) {
-      onComplete();
-    }
+
+  const handleAnimationEnd = () => {
+    isAnimating = false;
+    animationParams = null;
   }
 </script>
 
 <div class="flashcard-deck">
   <div class="cards-container">
+    {#if animationParams !== null && animationParams.transaction !== null}
+      <div
+        class="card-wrapper"
+        class:throw-left={animationParams.direction === "left" && animationParams.mode === "out"}
+        class:throw-right={animationParams.direction === "right" && animationParams.mode === "out"}
+        class:recover-left={animationParams.direction === "left" && animationParams.mode === "in"}
+        class:recover-right={animationParams.direction === "right" && animationParams.mode === "in"}
+        onanimationend={handleAnimationEnd}
+      >
+        {@render animationParams.card(animationParams.transaction)}
+      </div>
+    {/if}
     {#if !isComplete}
-      {#each visibleCards as visibleCard, index (`${visibleCard.transaction.name}-${visibleCard.transaction.date}-${visibleCard.transaction.amount}-${index}`)}
+      {#each visibleCards as visibleCard, stackPos (`${visibleCard.transaction.name}-${visibleCard.transaction.date}-${visibleCard.transaction.amount}-${visibleCard.transaction.id}`)}
         <div
           class="card-wrapper"
-          class:card-back-2={index === 2}
-          class:card-back-1={index === 1}
-          class:card-front={index === 0}
-          class:throw-left={index === 0 && throwDirection === "left" && !reverse}
-          class:throw-right={index === 0 && throwDirection === "right" && !reverse}
-          class:recover-left={index === 0 && throwDirection === "left" && !!reverse}
-          class:recover-right={index === 0 && throwDirection === "right" && !!reverse}
-          onanimationend={index === 0 ? handleAnimationEnd : undefined}
+          class:card-back-2={stackPos === 2}
+          class:card-back-1={stackPos === 1}
+          class:card-front={stackPos === 0}
         >
           {@render card(visibleCard)}
         </div>
+        
       {/each}
     {/if}
   </div>
@@ -93,7 +153,7 @@
     {@render backButton()}
     
     <span class="counter">
-      {isComplete ? totalCards : currentIndex + 1}/{totalCards}
+      {isComplete ? totalCards : index + 1}/{totalCards}
     </span>
 
     {@render nextButton()}

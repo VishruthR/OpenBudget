@@ -1,18 +1,16 @@
 <script lang="ts">
   import { onMount } from "svelte";
-    import { categoriesApi } from "$lib/api/categories";
+  import { categoriesApi } from "$lib/api/categories";
   import type { CategoryOverview, TransactionWithAccount } from "$lib/types";
-    import FlashcardDeck from "$lib/components/FlashcardDeck.svelte";
-    import { transactionsApi } from "$lib/api/transactions";
-    import UncategorizedFlashcard from "$lib/components/UncategorizedFlashcard.svelte";
-    import Button from "$lib/components/Button.svelte";
+  import FlashcardDeck from "$lib/components/FlashcardDeck.svelte";
+  import { transactionsApi } from "$lib/api/transactions";
+  import UncategorizedFlashcard from "$lib/components/UncategorizedFlashcard.svelte";
+  import Button from "$lib/components/Button.svelte";
 
-  let currentIndex = $state(0);
-  let nextIndexIncrement = $state(0);
+  let index = $state(0);
   let isAnimating = $state(false);
-  let throwDirection = $state<"left" | "right" | null>(null);
-  let lastThrowDirection = $state<"left" | "right" | null>(null);
-  let reverse = $state<boolean | null>(null);
+  let deck = $state<ReturnType<typeof FlashcardDeck>>();
+  let isReviewComplete = $state(false);
   
   let transactions = $state<TransactionWithAccount[]>([]);
   async function loadTransactions() {
@@ -33,55 +31,42 @@
   const handleCategoryUpdate = (transactionId: number, categoryId: number) => {
     transactionsApi.updateTransactionCategory(transactionId, categoryId);
     handleNext();
-    console.log("updated!");
-  }
-
-  const handleAnimationEnd = () => {
-    isAnimating = false;
-    lastThrowDirection = throwDirection;
-    throwDirection = null;
-    reverse = null;
-    currentIndex += nextIndexIncrement;
-    nextIndexIncrement = 0;
-    console.log("done animating");
   }
 
   const handleNext = () => {
-    isAnimating = true;
-
-    // Alternate throwing directions
-    if (lastThrowDirection == "right") {
-      throwDirection = "left";
-    } else {
-      throwDirection = "right";
+    if (deck) {
+      deck.next();
     }
 
-    reverse = false;
-    nextIndexIncrement = 1;
-    console.log("accepted!");
+    if (index >= transactions.length) {
+      handleReviewComplete();
+    }
   }
 
   const handleBack = () => {
-    if (currentIndex === 0) return;
-    isAnimating = true;
-
-    // TODO: Bug, if they spam back, then the cards will all come from the same direction
-    throwDirection = lastThrowDirection;
-    reverse = true;
-
-    currentIndex -= 1;
-    console.log("discarded");
+    if (deck) {
+      deck.back();
+    }
   }
 
   const handleReviewComplete = () => {
-    console.log("review complete");
+    isReviewComplete = true;
+  }
+
+  const getEmptyText = () => {
+    if (transactions.length === 0) {
+      return "All your transactions are categorized. Way to keep your ducks in a row!"
+    }
+    if (isReviewComplete) {
+      return "You're done!"
+    }
   }
 </script>
 
 {#snippet nextButton()}
   <Button
     onclick={handleNext}
-    disabled={isAnimating}
+    disabled={isAnimating || index >= transactions.length}
   >
     Next
   </Button>
@@ -90,7 +75,7 @@
 {#snippet backButton()}
   <Button
     onclick={handleBack}
-    disabled={isAnimating}
+    disabled={isAnimating || index == 0}
   >
     Back
   </Button>
@@ -117,19 +102,21 @@
     </div>
   </header>
   <div class="body">
-    <div class="flashcard-container">
-      <FlashcardDeck
-        bind:currentIndex
-        {transactions}
-        bind:throwDirection
-        bind:reverse
-        {card}
-        {nextButton}
-        {backButton}
-        onAnimationEnd={handleAnimationEnd}
-        onComplete={handleReviewComplete}
-      />
-    </div>
+    {#if isReviewComplete || transactions.length === 0}
+      <h3>{getEmptyText()}</h3>
+    {:else}
+      <div class="flashcard-container">
+        <FlashcardDeck
+          bind:this={deck}
+          bind:index
+          bind:isAnimating
+          {transactions}
+          {card}
+          {nextButton}
+          {backButton}
+        />
+      </div>
+    {/if}
   </div>
 </main>
 
@@ -163,5 +150,6 @@
   .flashcard-container {
     width: 100%;
     max-width: 500px;
+    padding-top: 100px;
   }
 </style>
