@@ -38,9 +38,7 @@
   let categories: Category[] = $state([]);
   const loadCategories = async () => {
     try {
-      console.log("loading categories");
       categories = Object.values(await categoriesApi.getCategoryDetails());
-      console.log(categories);
     } catch (e) {
       console.error(e);
     }

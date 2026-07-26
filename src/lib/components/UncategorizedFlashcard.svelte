@@ -15,7 +15,7 @@
 <script lang="ts">
     import type { Category, TransactionWithAccount } from "$lib/types";
     import { formatDate, formatSignedCurrencyChange, isPositiveAmount } from "$lib/utils/format";
-    import CategoryCombobox from "./CategoryCombobox.svelte";
+    import CategoryCombobox from "$lib/components/CategoryCombobox.svelte";
   
     interface Props {
       transaction: TransactionWithAccount;
