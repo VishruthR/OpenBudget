@@ -4,7 +4,7 @@ interface Category {
     id: number,
     name: string,
     color: string,
-    icon: string
+    icon?: string
 }
 type CategoryDetails =  Record<string, Category>;
 
@@ -21,7 +21,10 @@ interface Transaction {
     id: number;
     name: string;
     amount: number;
-    date: Date;
+    // Rust backend treats Date as day, Date class in JS represents an instant
+    // To avoid mismatches, we just treat it as a string
+    // Expect dates in YYYY-MM-DD format
+    date: string;
     account_id: number;
     category_id: number;
 }
@@ -43,7 +46,14 @@ interface PaginedSortedTransactionsResponse {
   num_transactions: number;
 }
 
-type TransactionImport = Omit<Transaction, "id">;
+type TransactionWithoutId = Omit<Transaction, "id">;
+interface FlashcardTransaction {
+  transaction: TransactionWithoutId;
+  category_name: string;
+  category_color: string;
+  category_icon: string | null;
+  account_name: string;
+}
 
 interface PlaidAccount {
   account_id: string;
@@ -101,4 +111,4 @@ interface DropdownOption {
     content?: Snippet;
 }
 
-export type { Category, CategoryDetails, CategoryOverview, Transaction, TransactionImport, AccountType, Account, DropdownOption, PlaidAccount, PlaidItem, AccountsGetResponse, LinkedInstitution, TransactionWithAccount, PaginedSortedTransactionsResponse };
+export type { Category, CategoryDetails, CategoryOverview, Transaction, TransactionWithoutId, AccountType, Account, DropdownOption, PlaidAccount, PlaidItem, AccountsGetResponse, LinkedInstitution, TransactionWithAccount, PaginedSortedTransactionsResponse, FlashcardTransaction };

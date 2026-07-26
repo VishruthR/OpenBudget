@@ -10,18 +10,19 @@
 
   interface Props {
     categories: Category[];
-    value: string | null;
+    value: number | null;
     onSelect: (categoryId: number) => void;
   }
 
   let { categories, value, onSelect }: Props = $props();
 
+  // bits-ui Combobox only works with Strings
   const options = $derived<DropdownOption[]>(categories.map((c) => ({ value: String(c.id) })));
   const byId = $derived(new Map(categories.map((c) => [String(c.id), c])));
 </script>
 
 {#snippet categoryItem(option: DropdownOption)}
-  {@const category = byId.get(option.value)}
+  {@const category = byId.get(String(option.value))}
   {#if category}
     <CategoryPill
       name={category.name}
@@ -34,7 +35,7 @@
 <Combobox
   variant="slim"
   {options}
-  {value}
+  value={value !== null ? String(value) : null}
   item={categoryItem}
   onSelect={(v) => {
     if (v !== null) onSelect(Number(v));

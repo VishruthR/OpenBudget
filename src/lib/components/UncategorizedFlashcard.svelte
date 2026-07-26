@@ -13,51 +13,51 @@
 -->
 
 <script lang="ts">
-    import type { TransactionImport } from "$lib/types";
-    import CategoryPill from "$lib/components/CategoryPill.svelte";
+    import type { Category, TransactionWithAccount } from "$lib/types";
     import { formatDate, formatSignedCurrencyChange, isPositiveAmount } from "$lib/utils/format";
-    import { categoriesApi } from "$lib/api/categories";
+    import CategoryCombobox from "$lib/components/CategoryCombobox.svelte";
   
     interface Props {
-      transaction: TransactionImport;
+      transaction: TransactionWithAccount;
+      categories: Category[];
+      handleCategoryUpdate: (transactionId: number, categoryId: number) => void;
     }
   
-    let { transaction }: Props = $props();
+    let { transaction, categories, handleCategoryUpdate }: Props = $props();
 
-    // TODO: Handle errors in case category doesn't exist
-    const category = $derived(await categoriesApi.getCategoryById(transaction.category_id));
+    const onCategoryUpdate = (categoryId: number) => {
+      handleCategoryUpdate(transaction.transaction.id, categoryId);
+    }
   </script>
   
   <div class="flashcard">
     <div class="field">
       <span class="label">Name</span>
-      <span class="value wrap">{transaction.name}</span>
+      <span class="value wrap">{transaction.transaction.name}</span>
     </div>
   
     <div class="row">
       <div class="field">
         <span class="label">Date</span>
-        <span class="value">{formatDate(transaction.date)}</span>
+        <span class="value">{formatDate(transaction.transaction.date)}</span>
       </div>
       <div class="field">
         <span class="label">Amount</span>
-        <span class="value {isPositiveAmount(transaction.amount) ? 'positive' : 'negative'}">
-          {formatSignedCurrencyChange(transaction.amount)}
+        <span class="value {isPositiveAmount(transaction.transaction.amount) ? 'positive' : 'negative'}">
+          {formatSignedCurrencyChange(transaction.transaction.amount)}
         </span>
       </div>
     </div>
   
     <div class="field">
       <span class="label">Category</span>
-      {#if category}
       <div>
-        <CategoryPill
-          name={category.name}
-          icon={category.icon}
-          textColor={category.color}
+        <CategoryCombobox 
+          categories={categories} 
+          value={transaction.transaction.category_id}
+          onSelect={onCategoryUpdate}
         />
       </div>
-      {/if}
     </div>
   </div>
   

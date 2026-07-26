@@ -19,6 +19,7 @@
     { label: "Home", href: "/", icon: "mdi:home-outline" },
     { label: "Add Accounts", href: "/plaid/link", icon: "mdi:account-outline" },
     { label: "Categories", href: "/categories", icon: "mdi:tag-outline" },
+    { label: "Triage", href: "/triage", icon: "mingcute:task-2-line" },
   ];
 
   const settingsItem: NavItem = {

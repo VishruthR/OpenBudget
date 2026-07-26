@@ -13,6 +13,7 @@
   import { categoriesApi } from "$lib/api/categories";
   import type { Category, TransactionWithAccount, PaginedSortedTransactionsResponse } from "$lib/types";
   import Icon from "@iconify/svelte";
+    import { onMount } from "svelte";
 
   interface Props {
     height?: string;
@@ -35,11 +36,14 @@
   })
 
   let categories: Category[] = $state([]);
-  $effect(() => {
-    categoriesApi.getCategoryDetails()
-      .then((details) => { categories = Object.values(details); })
-      .catch((e) => console.error(e));
-  });
+  const loadCategories = async () => {
+    try {
+      categories = Object.values(await categoriesApi.getCategoryDetails());
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  onMount(loadCategories)
 
   async function handleCategoryChange(txn: TransactionWithAccount, categoryId: number) {
     const category = categories.find((c) => c.id === categoryId);
@@ -139,10 +143,8 @@
   const dateFormatter = new Intl.DateTimeFormat("en-US", { 
     month: "short", day: "numeric", year: "numeric" 
   });
-  function formatTableDate(date: string | Date): string {
-    // The backend serializes dates as "YYYY-MM-DD". Passing that straight to
-    // `new Date(...)` parses it as UTC midnight, which renders the previous day
-    // in negative-offset timezones. Build the date from its parts so it stays local.
+  function formatTableDate(date: string): string {
+    // Expect date string in form YYYY-MM-DD
     const [year, month, day] = String(date).split("-").map(Number);
     return dateFormatter.format(new Date(year, month - 1, day));
   }

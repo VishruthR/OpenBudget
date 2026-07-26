@@ -1,10 +1,18 @@
 /**
- * Formats a Date object to MM/DD/YYYY string format.
+ * Formats a date string of form YYYY-MM-DD
+ * to MM/DD/YYYY format
  */
-export function formatDate(date: Date): string {
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const year = date.getFullYear();
+export function formatDate(date: string): string {
+  // Simple guard
+  if (date.length !== "YYYY-MM-DD".length) {
+    return "";
+  }
+
+  const dateParts = date.split("-");
+
+  const month = dateParts[1];
+  const year = dateParts[0];
+  const day = dateParts[2]
   return `${month}/${day}/${year}`;
 }
 

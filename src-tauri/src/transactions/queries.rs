@@ -16,6 +16,40 @@ pub async fn get_transactions(
     Ok(res)
 }
 
+pub async fn get_transactions_by_category(
+    pool: &Pool<Sqlite>,
+    category_name: &String
+) -> Result<Vec<TransactionWithAccount>, sqlx::Error> {
+    let query = r#"
+        SELECT
+            t.id,
+            t.plaid_transaction_id,
+            t.name,
+            t.merchant_entity_id,
+            t.amount_cents,
+            t.date,
+            t.pending,
+            t.deleted_at,
+            t.account_id,
+            t.category_id,
+            a.name AS account_name,
+            c.name AS category_name,
+            c.color AS category_color,
+            c.icon AS category_icon
+        FROM 'transaction' t
+        JOIN account a ON t.account_id=a.id
+        JOIN category c ON t.category_id=c.id
+        WHERE t.deleted_at IS NULL AND c.name = ?
+    "#;
+
+    let res: Vec<TransactionWithAccount> = sqlx::query_as(query)
+        .bind(category_name)
+        .fetch_all(pool)
+        .await?;
+
+    Ok(res)
+}
+
 pub async fn get_num_transactions(
     pool: &Pool<Sqlite>
 ) -> Result<i64, sqlx::Error> {

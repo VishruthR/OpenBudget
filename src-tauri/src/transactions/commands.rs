@@ -55,3 +55,13 @@ pub async fn update_transaction_category(
         .await
         .map_err(|e| format!("Error updating transaction category: {e}"))
 }
+
+#[tauri::command]
+pub async fn get_transactions_by_category(
+    state: tauri::State<'_, AppState>,
+    category_name: String
+) -> Result<Vec<TransactionWithAccount>, String> {
+    transactions::queries::get_transactions_by_category(&state.db.0, &category_name)
+        .await
+        .map_err(|e| format!("Error fetching transactions: {e}"))
+}
