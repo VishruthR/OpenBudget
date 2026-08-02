@@ -1,5 +1,5 @@
 use crate::types::{SortDir, TransactionWithAccount};
-use crate::{AppState, transactions};
+use crate::{AppState, categories, transactions};
 
 #[derive(serde::Serialize)]
 pub struct PaginatedSortedTransactionsResponse {
@@ -51,9 +51,18 @@ pub async fn update_transaction_category(
     transaction_id: i64,
     category_id: i64,
 ) -> Result<(), String> {
-    transactions::queries::update_transaction_category(&state.db.0, transaction_id, category_id)
+    let uncategorized = categories::queries::get_uncategorized_category(&state.db.0)
         .await
-        .map_err(|e| format!("Error updating transaction category: {e}"))
+        .map_err(|e| format!("Error fetching uncategorized category: {e}"))?;
+
+    transactions::queries::update_transaction_category(
+        &state.db.0,
+        transaction_id,
+        category_id,
+        *uncategorized.id(),
+    )
+    .await
+    .map_err(|e| format!("Error updating transaction category: {e}"))
 }
 
 #[tauri::command]

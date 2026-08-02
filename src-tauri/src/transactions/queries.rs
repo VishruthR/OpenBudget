@@ -2,6 +2,7 @@ use crate::{plaid::types::PlaidTransaction, types::SortDir};
 use crate::types::{Transaction, TransactionWithAccount};
 use ::plaid::model::RemovedTransaction;
 use sqlx::{Pool, QueryBuilder, Sqlite, SqliteConnection};
+use std::collections::HashMap;
 
 pub async fn get_transactions(
     pool: &Pool<Sqlite>,
@@ -153,7 +154,8 @@ pub async fn get_paginated_sorted_transactions(
 pub async fn add_plaid_transactions(
     conn: &mut SqliteConnection,
     new_transactions: Vec<PlaidTransaction>,
-    default_category: &i64,
+    default_category: i64,
+    rules: &HashMap<String, i64>,
 ) -> Result<u64, sqlx::Error> {
     if new_transactions.is_empty() {
         return Ok(0);
@@ -167,6 +169,13 @@ pub async fn add_plaid_transactions(
     query_builder.push_values(new_transactions, |mut b, t| {
         let account_id = *t.account_id();
 
+        let category_id = t
+            .name
+            .as_deref()
+            .and_then(|name| rules.get(name))
+            .copied()
+            .unwrap_or(default_category);
+
         b.push_bind(t.plaid_transaction_id)
             .push_bind(t.name.unwrap_or("".to_string()))
             .push_bind(t.merchant_entity_id)
@@ -174,7 +183,7 @@ pub async fn add_plaid_transactions(
             .push_bind(t.date)
             .push_bind(t.pending)
             .push_bind(account_id)
-            .push_bind(default_category);
+            .push_bind(category_id);
     });
     query_builder.push(
         " ON CONFLICT(plaid_transaction_id) WHERE plaid_transaction_id IS NOT NULL DO NOTHING",
@@ -190,11 +199,78 @@ pub async fn update_transaction_category(
     pool: &Pool<Sqlite>,
     transaction_id: i64,
     category_id: i64,
+    uncategorized_id: i64,
 ) -> Result<(), sqlx::Error> {
-    sqlx::query(r#"UPDATE 'transaction' SET category_id=? WHERE id=?"#)
+    let mut tx = pool.begin().await?;
+
+    let res = sqlx::query(r#"UPDATE 'transaction' SET category_id=? WHERE id=?"#)
         .bind(category_id)
         .bind(transaction_id)
-        .execute(pool)
+        .execute(&mut *tx)
+        .await?;
+
+    // Remember this decision so future transactions from the same merchant inherit
+    let name: Option<String> =
+        sqlx::query_scalar(r#"SELECT name FROM 'transaction' WHERE id=?"#)
+            .bind(transaction_id)
+            .fetch_optional(&mut *tx)
+            .await?;
+
+    if let Some(name) = name {
+        if !name.is_empty() {
+            if category_id == uncategorized_id {
+                delete_category_rule(&mut tx, &name).await?;
+            } else {
+                upsert_category_rule(&mut tx, &name, category_id).await?;
+            }
+        }
+    }
+
+    tx.commit().await?;
+
+    Ok(())
+}
+
+pub async fn get_category_rules(
+    pool: &Pool<Sqlite>,
+) -> Result<HashMap<String, i64>, sqlx::Error> {
+    let rules: Vec<(String, i64)> =
+        sqlx::query_as(r#"SELECT name, category_id FROM transaction_category_rule"#)
+            .fetch_all(pool)
+            .await?;
+
+    Ok(rules.into_iter().collect())
+}
+
+async fn upsert_category_rule(
+    conn: &mut SqliteConnection,
+    name: &str,
+    category_id: i64,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        r#"
+        INSERT INTO transaction_category_rule (name, category_id)
+        VALUES (?, ?)
+        ON CONFLICT(name) DO UPDATE SET
+            category_id=excluded.category_id,
+            updated_at=datetime('now')
+        "#,
+    )
+    .bind(name)
+    .bind(category_id)
+    .execute(&mut *conn)
+    .await?;
+
+    Ok(())
+}
+
+async fn delete_category_rule(
+    conn: &mut SqliteConnection,
+    name: &str,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(r#"DELETE FROM transaction_category_rule WHERE name=?"#)
+        .bind(name)
+        .execute(&mut *conn)
         .await?;
 
     Ok(())
@@ -343,7 +419,8 @@ mod tests {
                 plaid_txn("txn-1", "Coffee", -4.50, false),
                 plaid_txn("txn-2", "Books", -20.00, false),
             ],
-            &1
+            1,
+            &HashMap::new(),
         )
         .await?;
         assert_eq!(skipped, 0);
@@ -371,9 +448,13 @@ mod tests {
         pool: Pool<Sqlite>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let mut conn = pool.acquire().await?;
-        let first =
-            add_plaid_transactions(&mut conn, vec![plaid_txn("txn-1", "Coffee", -4.50, false)], &1)
-                .await?;
+        let first = add_plaid_transactions(
+            &mut conn,
+            vec![plaid_txn("txn-1", "Coffee", -4.50, false)],
+            1,
+            &HashMap::new(),
+        )
+        .await?;
         assert_eq!(first, 0);
 
         // Re-syncing the same transaction (Plaid resends) must not duplicate it, and
@@ -381,7 +462,8 @@ mod tests {
         let second = add_plaid_transactions(
             &mut conn,
             vec![plaid_txn("txn-1", "Coffee CHANGED", -9.99, false)],
-            &1
+            1,
+            &HashMap::new(),
         )
         .await?;
         assert_eq!(second, 1);
@@ -411,7 +493,8 @@ mod tests {
         add_plaid_transactions(
             &mut conn,
             vec![plaid_txn("txn-1", "Pending Coffee", -4.50, true)],
-            &1
+            1,
+            &HashMap::new(),
         )
         .await?;
 
@@ -436,7 +519,13 @@ mod tests {
         pool: Pool<Sqlite>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let mut conn = pool.acquire().await?;
-        add_plaid_transactions(&mut conn, vec![plaid_txn("txn-1", "Coffee", -4.50, false)], &1).await?;
+        add_plaid_transactions(
+            &mut conn,
+            vec![plaid_txn("txn-1", "Coffee", -4.50, false)],
+            1,
+            &HashMap::new(),
+        )
+        .await?;
 
         remove_plaid_transactions(
             &mut conn,
@@ -585,11 +674,11 @@ mod tests {
     async fn update_reassigns_and_overwrites_category(
         pool: Pool<Sqlite>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        update_transaction_category(&pool, 1, 4).await?;
+        update_transaction_category(&pool, 1, 4, 1).await?;
         assert_eq!(category_of(&all_transactions(&pool).await?, 1), "Groceries");
 
         // A subsequent update replaces the previous category (last write wins).
-        update_transaction_category(&pool, 1, 2).await?;
+        update_transaction_category(&pool, 1, 2, 1).await?;
         assert_eq!(category_of(&all_transactions(&pool).await?, 1), "Income");
         Ok(())
     }
@@ -598,7 +687,7 @@ mod tests {
     async fn update_only_affects_target_transaction(
         pool: Pool<Sqlite>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        update_transaction_category(&pool, 1, 4).await?;
+        update_transaction_category(&pool, 1, 4, 1).await?;
 
         let transactions = all_transactions(&pool).await?;
         assert_eq!(category_of(&transactions, 1), "Groceries");
@@ -618,7 +707,7 @@ mod tests {
     ) -> Result<(), Box<dyn std::error::Error>> {
         // category_id 999 has no matching category row; the foreign key on
         // transaction.category_id should reject the update.
-        let result = update_transaction_category(&pool, 1, 999).await;
+        let result = update_transaction_category(&pool, 1, 999, 1).await;
         assert!(
             result.is_err(),
             "updating to a non-existent category should fail"
@@ -626,6 +715,81 @@ mod tests {
 
         // The rejected update must leave the transaction's category unchanged.
         assert_eq!(category_of(&all_transactions(&pool).await?, 1), "Uncategorized");
+        Ok(())
+    }
+
+    async fn rule_for(pool: &Pool<Sqlite>, name: &str) -> Option<i64> {
+        sqlx::query_scalar("SELECT category_id FROM transaction_category_rule WHERE name = ?")
+            .bind(name)
+            .fetch_optional(pool)
+            .await
+            .expect("query rule")
+    }
+
+    #[sqlx::test(fixtures(path = "../fixtures", scripts("transactions")))]
+    async fn update_records_and_replaces_merchant_rule(
+        pool: Pool<Sqlite>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        update_transaction_category(&pool, 1, 4, 1).await?;
+        assert_eq!(rule_for(&pool, "TRANSACTION 1").await, Some(4));
+
+        update_transaction_category(&pool, 1, 2, 1).await?;
+        assert_eq!(rule_for(&pool, "TRANSACTION 1").await, Some(2));
+        let count: i64 =
+            sqlx::query_scalar("SELECT COUNT(*) FROM transaction_category_rule WHERE name = ?")
+                .bind("TRANSACTION 1")
+                .fetch_one(&pool)
+                .await?;
+        assert_eq!(count, 1);
+        Ok(())
+    }
+
+    #[sqlx::test(fixtures(path = "../fixtures", scripts("transactions")))]
+    async fn update_to_uncategorized_clears_merchant_rule(
+        pool: Pool<Sqlite>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        update_transaction_category(&pool, 1, 4, 1).await?;
+        assert_eq!(rule_for(&pool, "TRANSACTION 1").await, Some(4));
+
+        update_transaction_category(&pool, 1, 1, 1).await?;
+        assert_eq!(rule_for(&pool, "TRANSACTION 1").await, None);
+        Ok(())
+    }
+
+    #[sqlx::test(fixtures(path = "../fixtures", scripts("plaid_sync")))]
+    async fn add_applies_saved_merchant_rule(
+        pool: Pool<Sqlite>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        // A saved rule maps "Coffee" -> Groceries (category 4).
+        sqlx::query("INSERT INTO transaction_category_rule (name, category_id) VALUES ('Coffee', 4)")
+            .execute(&pool)
+            .await?;
+        let rules = get_category_rules(&pool).await?;
+
+        let mut conn = pool.acquire().await?;
+        add_plaid_transactions(
+            &mut conn,
+            vec![
+                plaid_txn("txn-known", "Coffee", -4.50, false),
+                plaid_txn("txn-unknown", "Mystery Shop", -20.00, false),
+            ],
+            1,
+            &rules,
+        )
+        .await?;
+
+        let category_sql = "SELECT category_id FROM 'transaction' WHERE plaid_transaction_id = ?";
+        let known: i64 = sqlx::query_scalar(category_sql)
+            .bind("txn-known")
+            .fetch_one(&pool)
+            .await?;
+        let unknown: i64 = sqlx::query_scalar(category_sql)
+            .bind("txn-unknown")
+            .fetch_one(&pool)
+            .await?;
+
+        assert_eq!(known, 4, "rule merchant inherits saved category");
+        assert_eq!(unknown, 1, "unknown merchant falls back to default");
         Ok(())
     }
 }
