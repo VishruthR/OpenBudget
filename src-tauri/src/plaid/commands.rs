@@ -98,8 +98,6 @@ pub async fn sync_transactions(
         .await
         .map_err(|e| format!("Error fetching uncategorized category: {e}"))?;
 
-    // Saved merchant-name -> category rules so newly added transactions inherit the
-    // category the user previously chose for that merchant.
     let rules = transactions::queries::get_category_rules(&db.0)
         .await
         .map_err(|e| format!("Error fetching category rules: {e}"))?;
@@ -111,7 +109,7 @@ pub async fn sync_transactions(
             .await
             .map_err(|e| format!("Failed to begin transaction: {e}"))?;
 
-    let skipped_duplicates = transactions::queries::add_plaid_transactions(&mut tx, added, uncategorized.id(), &rules)
+    let skipped_duplicates = transactions::queries::add_plaid_transactions(&mut tx, added, *uncategorized.id(), &rules)
         .await
         .map_err(|e| format!("Failed to add plaid transactions: {e}"))?;
     println!(
