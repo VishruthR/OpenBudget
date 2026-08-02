@@ -16,7 +16,7 @@
 <script lang="ts">
     import Icon from "@iconify/svelte";
     import type { Category, TransactionWithAccount } from "$lib/types";
-    import { formatDate, formatSignedCurrencyChange, isPositiveAmount } from "$lib/utils/format";
+    import { formatDate, formatSignedCurrencyChange } from "$lib/utils/format";
     import { getInstitutionIcon } from "$lib/utils/institutionLogos";
     import CategoryCombobox from "$lib/components/CategoryCombobox.svelte";
 
@@ -50,7 +50,7 @@
       </div>
       <div class="amount">
         <span class="amount-label">Amount</span>
-        <span class="amount-value {isPositiveAmount(transaction.transaction.amount) ? 'positive' : 'negative'}">
+        <span class="amount-value {transaction.transaction.amount >= 0 ? 'positive' : 'negative'}">
           {formatSignedCurrencyChange(transaction.transaction.amount)}
         </span>
       </div>
@@ -122,7 +122,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      color: var(--grey-500);
+      color: var(--grey-300);
     }
 
     .date-value {
@@ -139,13 +139,11 @@
 
     .amount-label {
       font-size: 16px;
-      font-weight: 500;
-      color: var(--grey-400);
+      color: var(--grey-300);
     }
 
     .amount-value {
       font-size: 16px;
-      font-weight: 700;
     }
 
     .label {

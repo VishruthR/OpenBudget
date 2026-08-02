@@ -8,7 +8,7 @@
 <script lang="ts">
   import SortArrows, { type SortDirection } from "$lib/components/SortArrows.svelte";
   import CategoryCombobox from "$lib/components/CategoryCombobox.svelte";
-  import { formatSignedCurrencyChange, isPositiveAmount } from "$lib/utils/format";
+  import { formatSignedCurrencyChange } from "$lib/utils/format";
   import { transactionsApi } from "$lib/api/transactions";
   import { categoriesApi } from "$lib/api/categories";
   import type { Category, TransactionWithAccount, PaginedSortedTransactionsResponse } from "$lib/types";
@@ -224,7 +224,7 @@
               onSelect={(categoryId) => handleCategoryChange(transaction, categoryId)}
             />
           </td>
-          <td class="col-amount {isPositiveAmount(transaction.transaction.amount) ? 'positive' : 'negative'}">
+          <td class="col-amount {transaction.transaction.amount >= 0 ? 'positive' : 'negative'}">
             {formatSignedCurrencyChange(transaction.transaction.amount)}
           </td>
         </tr>

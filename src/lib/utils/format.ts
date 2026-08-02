@@ -43,13 +43,6 @@ export function formatSignedCurrencyAmount(amount: number): string {
 }
 
 /**
- * Returns true if the amount is non-negative.
- */
-export function isPositiveAmount(amount: number): boolean {
-  return amount >= 0;
-}
-
-/**
  * Formats an integer number of cents as a whole-dollar currency string, e.g. 50000 -> "$500".
  * Rounds to the nearest dollar; cents are not shown.
  */

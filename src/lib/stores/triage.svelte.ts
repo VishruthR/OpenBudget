@@ -3,7 +3,7 @@ import { transactionsApi } from "$lib/api/transactions";
 /**
  * Sidebar displays this number
  * Category updates should call loadUncategorizedCount after updating 
- * a transactions category.
+ * a transactions category
  */
 export const triageStore = $state({ uncategorizedCount: 0 });
 
@@ -12,3 +12,6 @@ export async function loadUncategorizedCount(): Promise<void> {
     await transactionsApi.getNumTransactionsByCategory("Uncategorized");
 }
 
+export function setUncategorizedCount(count: number): void {
+  triageStore.uncategorizedCount = Math.max(0, count);
+}
