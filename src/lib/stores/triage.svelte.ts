@@ -11,7 +11,3 @@ export async function loadUncategorizedCount(): Promise<void> {
   triageStore.uncategorizedCount =
     await transactionsApi.getNumTransactionsByCategory("Uncategorized");
 }
-
-export function setUncategorizedCount(count: number): void {
-  triageStore.uncategorizedCount = Math.max(0, count);
-}

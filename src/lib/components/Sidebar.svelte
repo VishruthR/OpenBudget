@@ -207,11 +207,10 @@
     min-width: 22px;
     height: 22px;
     padding: 0 7px;
-    border-radius: 11px;
+    border-radius: 100%;
     background-color: var(--grey-100);
     color: var(--grey-500);
     font-size: 12px;
     font-weight: 700;
-    line-height: 1;
   }
 </style>
