@@ -6,6 +6,7 @@
   import { transactionsApi } from "$lib/api/transactions";
   import UncategorizedFlashcard from "$lib/components/UncategorizedFlashcard.svelte";
   import Button from "$lib/components/Button.svelte";
+  import { loadUncategorizedCount } from "$lib/stores/triage.svelte";
 
   let index = $state(0);
   let isAnimating = $state(false);
@@ -15,6 +16,7 @@
   let transactions = $state<TransactionWithAccount[]>([]);
   async function loadTransactions() {
     transactions = await transactionsApi.getTransactionsByCategory("Uncategorized");
+    await loadUncategorizedCount();
   }
   onMount(loadTransactions);
   $inspect(transactions);
@@ -29,7 +31,8 @@
   onMount(loadCategories);
 
   const handleCategoryUpdate = (transactionId: number, categoryId: number) => {
-    transactionsApi.updateTransactionCategory(transactionId, categoryId);
+    transactionsApi.updateTransactionCategory(transactionId, categoryId)
+      .then(() => loadUncategorizedCount());
     handleNext();
   }
 

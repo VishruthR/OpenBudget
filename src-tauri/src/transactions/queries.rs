@@ -33,11 +33,13 @@ pub async fn get_transactions_by_category(
             t.account_id,
             t.category_id,
             a.name AS account_name,
+            b.plaid_institution_id AS bank_institution_id,
             c.name AS category_name,
             c.color AS category_color,
             c.icon AS category_icon
         FROM 'transaction' t
         JOIN account a ON t.account_id=a.id
+        JOIN bank b ON a.bank_id=b.id
         JOIN category c ON t.category_id=c.id
         WHERE t.deleted_at IS NULL AND c.name = ?
     "#;
@@ -56,6 +58,25 @@ pub async fn get_num_transactions(
     let res: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM 'transaction' WHERE deleted_at IS NULL")
         .fetch_one(pool)
         .await?;
+
+    Ok(res)
+}
+
+pub async fn get_num_transactions_by_category(
+    pool: &Pool<Sqlite>,
+    category_name: &String,
+) -> Result<i64, sqlx::Error> {
+    let res: i64 = sqlx::query_scalar(
+        r#"
+        SELECT COUNT(*)
+        FROM 'transaction' t
+        JOIN category c ON t.category_id=c.id
+        WHERE t.deleted_at IS NULL AND c.name = ?
+        "#,
+    )
+    .bind(category_name)
+    .fetch_one(pool)
+    .await?;
 
     Ok(res)
 }
@@ -83,11 +104,13 @@ pub async fn get_paginated_sorted_transactions(
             t.account_id,
             t.category_id,
             a.name AS account_name,
+            b.plaid_institution_id AS bank_institution_id,
             c.name AS category_name,
             c.color AS category_color,
             c.icon AS category_icon
         FROM 'transaction' t
         JOIN account a ON t.account_id=a.id
+        JOIN bank b ON a.bank_id=b.id
         JOIN category c ON t.category_id=c.id
         WHERE t.deleted_at IS NULL
     "#);
@@ -447,6 +470,29 @@ mod tests {
 
     fn ids(transactions: &[TransactionWithAccount]) -> Vec<i64> {
         transactions.iter().map(|t| *t.id()).collect()
+    }
+
+    #[sqlx::test(fixtures(path = "../fixtures", scripts("transactions")))]
+    async fn num_by_category_counts_only_matching_category(
+        pool: Pool<Sqlite>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        // All 4 fixture transactions are category_id = 1 ("Uncategorized").
+        assert_eq!(
+            get_num_transactions_by_category(&pool, &"Uncategorized".to_owned()).await?,
+            4
+        );
+
+        // Reassigning one to another category drops the uncategorized count.
+        update_transaction_category(&pool, 1, 4).await?;
+        assert_eq!(
+            get_num_transactions_by_category(&pool, &"Uncategorized".to_owned()).await?,
+            3
+        );
+        assert_eq!(
+            get_num_transactions_by_category(&pool, &"Groceries".to_owned()).await?,
+            1
+        );
+        Ok(())
     }
 
     #[sqlx::test(fixtures(path = "../fixtures", scripts("transactions")))]

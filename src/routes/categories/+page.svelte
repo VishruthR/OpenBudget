@@ -20,7 +20,6 @@
   async function loadCategories() {
     categories = await categoriesApi.getCategoryOverviews();
   }
-
   onMount(loadCategories);
 
   async function handleBudgetChange(categoryId: number, amountCents: number) {

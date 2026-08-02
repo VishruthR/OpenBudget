@@ -35,6 +35,7 @@ interface TransactionWithAccount {
   category_color: string;
   category_icon: string | null;
   account_name: string;
+  bank_institution_id: string | null;
 }
 
 interface PaginedSortedTransactionsResponse {
