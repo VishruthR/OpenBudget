@@ -23,6 +23,10 @@ const getTransactionsByCategory = async (categoryName: string): Promise<Transact
   return (await invoke("get_transactions_by_category", { categoryName })) as TransactionWithAccount[];
 }
 
+const getNumTransactionsByCategory = async (categoryName: string): Promise<number> => {
+  return (await invoke("get_num_transactions_by_category", { categoryName })) as number;
+}
+
 const updateTransactionCategory = async (transactionId: number, categoryId: number): Promise<void> => {
   await invoke("update_transaction_category", { transactionId, categoryId });
 }
@@ -31,5 +35,6 @@ export const transactionsApi = {
   syncTransactions,
   getPaginatedSortedTransactions,
   updateTransactionCategory,
-  getTransactionsByCategory
+  getTransactionsByCategory,
+  getNumTransactionsByCategory
 }

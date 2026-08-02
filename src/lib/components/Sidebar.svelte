@@ -6,8 +6,10 @@
 
 <script lang="ts">
   import Icon from "@iconify/svelte";
+  import { onMount } from "svelte";
   import { page } from "$app/state";
   import { browser } from "$app/environment";
+  import { triageStore, loadUncategorizedCount } from "$lib/stores/triage.svelte";
 
   interface NavItem {
     label: string;
@@ -40,6 +42,8 @@
       localStorage.setItem(STORAGE_KEY, String(collapsed));
     }
   });
+
+  onMount(loadUncategorizedCount);
 
   function isActive(href: string): boolean {
     const path = page.url.pathname;
@@ -76,6 +80,9 @@
         <Icon icon={item.icon} width={22} height={22} />
         {#if !collapsed}
           <span class="nav-label">{item.label}</span>
+          {#if item.href === "/triage" && triageStore.uncategorizedCount > 0}
+            <span class="badge">{triageStore.uncategorizedCount}</span>
+          {/if}
         {/if}
       </a>
     {/each}
@@ -190,5 +197,21 @@
   .nav-label {
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  .badge {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 7px;
+    border-radius: 11px;
+    background-color: var(--grey-100);
+    color: var(--grey-500);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
   }
 </style>

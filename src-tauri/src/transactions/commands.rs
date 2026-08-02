@@ -65,3 +65,13 @@ pub async fn get_transactions_by_category(
         .await
         .map_err(|e| format!("Error fetching transactions: {e}"))
 }
+
+#[tauri::command]
+pub async fn get_num_transactions_by_category(
+    state: tauri::State<'_, AppState>,
+    category_name: String
+) -> Result<i64, String> {
+    transactions::queries::get_num_transactions_by_category(&state.db.0, &category_name)
+        .await
+        .map_err(|e| format!("Error counting transactions: {e}"))
+}
