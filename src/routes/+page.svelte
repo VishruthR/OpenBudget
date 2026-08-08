@@ -1,9 +1,11 @@
 <script lang="ts">
   import Button from "$lib/components/Button.svelte";
+    import MonthByMonthSpendingChart from "$lib/components/MonthByMonthSpendingChart.svelte";
   import TransactionsTable from "$lib/components/TransactionsTable.svelte";
  </script>
 
 <main class="container">
+  <MonthByMonthSpendingChart />
   <TransactionsTable />
 </main>
 
