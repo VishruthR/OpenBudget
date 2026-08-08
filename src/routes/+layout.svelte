@@ -3,6 +3,7 @@
   import { page } from "$app/state";
   import Sidebar from "$lib/components/Sidebar.svelte";
   import TitleBar from "$lib/components/TitleBar.svelte";
+  import { Tooltip } from "bits-ui";
 
   let { children } = $props();
 
@@ -26,13 +27,15 @@
 
 {#if showChrome}
   <div class="app-shell">
-    <Sidebar />
-    <div class="main-area">
-      <TitleBar {title} />
-      <div class="page-content">
-        {@render children()}
+    <Tooltip.Provider>
+      <Sidebar />
+      <div class="main-area">
+        <TitleBar {title} />
+        <div class="page-content">
+          {@render children()}
+        </div>
       </div>
-    </div>
+    </Tooltip.Provider>
   </div>
 {:else}
   {@render children()}
