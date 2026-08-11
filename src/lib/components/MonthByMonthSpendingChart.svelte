@@ -25,11 +25,23 @@
     };
   });;
 
-  const combinedData = income.map((data, idx) => { return { date: data.Date, income: data.Amount, spending: spending[idx].Amount }; });
+  // This array enables us to render the same tooltip for the income and spending lines
+  const tooltipAnchors = $derived.by(() => {
+    const combinedData = income.map((data, idx) => { return { date: data.Date, income: data.Amount, spending: spending[idx].Amount }; });
+
+    return combinedData.flatMap((d) => [
+      { ...d, amount: d.income },
+      { ...d, amount: d.spending },
+    ]);
+  });
 
   const formatDate = (date: Date) => { 
     const monthString = date.toLocaleString('default', { month: 'short' });
     return `${monthString} ${date.getFullYear()}`;
+  }
+
+  const getToolTipPosition = (datum: { date: Date, income: number, spending: number, amount: number }) => {
+    const maxAmount = max()
   }
 </script>
 
@@ -52,11 +64,11 @@
     />
     {#snippet overlay()}
       <HTMLTooltip
-        data={combinedData}
+        data={tooltipAnchors}
         x="date"
-        y="income">
+        y="amount">
         {#snippet children({ datum })}
-            <div class="tooltip">
+            <div class={`tooltip ${getTooltipPosition(datum)}`}>
                 <div class="tooltip-header">
                   <p class="tooltip-header-text">{datum.date ? formatDate(datum.date) : "placeholder"}</p>
                 </div>
@@ -80,12 +92,12 @@
       </HTMLTooltip>
     {/snippet}
     <Pointer
-      data={income}
-      x="Date"
-      y="Amount"
+      data={tooltipAnchors}
+      x="date"
+      y="amount"
       maxDistance={30}>
       {#snippet children({ data })}
-          <RuleX {data} x="Date" opacity="0.3" />
+          <RuleX {data} x="date" opacity="0.5" stroke="#535353" />
       {/snippet}
     </Pointer>
   </Plot>
@@ -108,6 +120,22 @@
         rgba(0, 0, 0, 0.25) 0px 0px 10px 0px;
   }
 
+  .tooltip-left {
+    transform: translateX(calc(-100% - 10px));
+  }
+
+  .tooltip-right {
+    transform: translateX(calc(0% + 10px));
+  }
+
+  .tooltip-top {
+    transform: translateY(calc(-50%));
+  }
+
+  .tooltip-bottom {
+    transform: translateY(calc(50%));
+  }
+
   .tooltip-header {
     display: flex;
     justify-content: center;
@@ -124,7 +152,7 @@
   }
 
   .tooltip-data {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--grey-200);
     min-width: 120px;
     margin: 3px 3px 3px 3px;
