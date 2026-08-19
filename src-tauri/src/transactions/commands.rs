@@ -1,4 +1,7 @@
-use crate::types::{SortDir, TransactionWithAccount};
+use chrono::NaiveDate;
+
+use crate::transactions::queries::{get_total_income_by_month, get_total_spending_by_month};
+use crate::types::{MonthlyAmount, SortDir, TransactionWithAccount};
 use crate::{AppState, categories, transactions};
 
 #[derive(serde::Serialize)]
@@ -43,6 +46,27 @@ pub async fn get_paginated_sorted_transactions(
     };
 
     Ok(out)
+}
+
+#[tauri::command]
+pub async fn get_monthly_income_and_spending(
+    state: tauri::State<'_, AppState>,
+    start_date: NaiveDate,
+    end_date: NaiveDate,
+) -> Result<(Vec<MonthlyAmount>, Vec<MonthlyAmount>), String> {
+    let db = &state.db;
+
+    println!("{} to {}", start_date, end_date);
+
+    let monthly_income = get_total_income_by_month(&db.0, start_date, end_date)
+        .await
+        .map_err(|e| format!("Error fetching monthly income: {e}"))?;
+
+    let monthly_spending = get_total_spending_by_month(&db.0, start_date, end_date)
+        .await
+        .map_err(|e| format!("Error fetching monthly spending: {e}"))?;
+
+    Ok((monthly_income, monthly_spending))
 }
 
 #[tauri::command]

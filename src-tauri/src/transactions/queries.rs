@@ -1,18 +1,58 @@
 use crate::{plaid::types::PlaidTransaction, types::SortDir};
-use crate::types::{Transaction, TransactionWithAccount};
+use crate::types::{MonthlyAmount, TransactionWithAccount};
+use chrono::NaiveDate;
 use ::plaid::model::RemovedTransaction;
 use sqlx::{Pool, QueryBuilder, Sqlite, SqliteConnection};
 use std::collections::HashMap;
 
-pub async fn get_transactions(
+pub async fn get_total_income_by_month(
     pool: &Pool<Sqlite>,
-    limit: Option<i64>,
-) -> Result<Vec<Transaction>, sqlx::Error> {
-    let query = "SELECT id, plaid_transaction_id, name, merchant_entity_id, amount_cents, date, pending, deleted_at, account_id, category_id FROM 'transaction' WHERE deleted_at IS NULL ORDER BY date, id LIMIT $1";
+    start_date: NaiveDate,
+    end_date: NaiveDate
+) -> Result<Vec<MonthlyAmount>, sqlx::Error> {
+    let query = r#"
+        SELECT
+            strftime('%Y-%m', t.date) AS month,
+            SUM(t.amount_cents) AS amount
+        FROM 'transaction' t
+        JOIN category c on t.category_id=c.id
+        WHERE c.name = 'Income' 
+            AND date(t.date) >= date($1) 
+            AND date(t.date) <= date($2)
+        GROUP BY strftime('%m', t.date)
+    "#;
 
-    // Negative value returns all rows
-    let lim = limit.unwrap_or(-1);
-    let res: Vec<Transaction> = sqlx::query_as(query).bind(lim).fetch_all(pool).await?;
+    let res: Vec<MonthlyAmount> = sqlx::query_as(query)
+        .bind(start_date)
+        .bind(end_date)
+        .fetch_all(pool)
+        .await?;
+
+    Ok(res)
+}
+
+pub async fn get_total_spending_by_month(
+    pool: &Pool<Sqlite>,
+    start_date: NaiveDate,
+    end_date: NaiveDate
+) -> Result<Vec<MonthlyAmount>, sqlx::Error> {
+    let query = r#"
+        SELECT
+            strftime('%Y-%m', t.date) AS month,
+            SUM(t.amount_cents) AS amount
+        FROM 'transaction' t
+        JOIN category c on t.category_id=c.id
+        WHERE c.name != 'Income' 
+            AND date(t.date) >= date($1) 
+            AND date(t.date) <= date($2)
+        GROUP BY strftime('%m', t.date)
+    "#;
+
+    let res: Vec<MonthlyAmount> = sqlx::query_as(query)
+        .bind(start_date)
+        .bind(end_date)
+        .fetch_all(pool)
+        .await?;
 
     Ok(res)
 }

@@ -1,4 +1,4 @@
-import type { PaginedSortedTransactionsResponse, TransactionWithAccount } from "$lib/types";
+import type { MonthlyAmount, PaginedSortedTransactionsResponse, TransactionWithAccount } from "$lib/types";
 import { invoke } from "@tauri-apps/api/core";
 
 const syncTransactions = async (): Promise<void> => {
@@ -31,10 +31,16 @@ const updateTransactionCategory = async (transactionId: number, categoryId: numb
   await invoke("update_transaction_category", { transactionId, categoryId });
 }
 
+const getMonthlyIncomeAndSpending = async (startDate: string, endDate: string): Promise<[MonthlyAmount[], MonthlyAmount[]]> => {
+  console.log(startDate, endDate);
+  return (await invoke("get_monthly_income_and_spending", { startDate, endDate })) as [MonthlyAmount[], MonthlyAmount[]];
+}
+
 export const transactionsApi = {
   syncTransactions,
   getPaginatedSortedTransactions,
   updateTransactionCategory,
   getTransactionsByCategory,
-  getNumTransactionsByCategory
+  getNumTransactionsByCategory,
+  getMonthlyIncomeAndSpending,
 }
