@@ -194,11 +194,11 @@ pub struct CategoryOverview {
     pub spent_cents: i64,
 }
 
-#[derive(sqlx::FromRow, PartialEq, Eq, Debug, Clone, serde::Serialize)]
+#[derive(sqlx::FromRow, PartialEq, Debug, Clone, serde::Serialize)]
 pub struct MonthlyAmount {
     // TODO: Should represent this with a Month type
     pub month: String,
-    pub amount: i64,
+    pub amount: Cents,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, sqlx::Type, serde::Serialize)]

@@ -17,11 +17,6 @@ interface CategoryOverview {
     spent_cents: number;
 }
 
-interface MonthlyAmount {
-    month: string;
-    amount: number;
-}
-
 interface Transaction {
     id: number;
     name: string;

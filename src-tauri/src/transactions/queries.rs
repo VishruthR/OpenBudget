@@ -1,57 +1,53 @@
 use crate::{plaid::types::PlaidTransaction, types::SortDir};
-use crate::types::{MonthlyAmount, TransactionWithAccount};
+use crate::types::{Cents, TransactionWithAccount};
 use chrono::NaiveDate;
 use ::plaid::model::RemovedTransaction;
 use sqlx::{Pool, QueryBuilder, Sqlite, SqliteConnection};
 use std::collections::HashMap;
 
-pub async fn get_total_income_by_month(
+pub async fn get_total_income_by_date_range(
     pool: &Pool<Sqlite>,
     start_date: NaiveDate,
     end_date: NaiveDate
-) -> Result<Vec<MonthlyAmount>, sqlx::Error> {
+) -> Result<Cents, sqlx::Error> {
     let query = r#"
         SELECT
-            strftime('%Y-%m', t.date) AS month,
             SUM(t.amount_cents) AS amount
         FROM 'transaction' t
         JOIN category c on t.category_id=c.id
         WHERE c.name = 'Income' 
             AND date(t.date) >= date($1) 
             AND date(t.date) <= date($2)
-        GROUP BY strftime('%m', t.date)
     "#;
 
-    let res: Vec<MonthlyAmount> = sqlx::query_as(query)
+    let res: Cents = sqlx::query_scalar(query)
         .bind(start_date)
         .bind(end_date)
-        .fetch_all(pool)
+        .fetch_one(pool)
         .await?;
 
     Ok(res)
 }
 
-pub async fn get_total_spending_by_month(
+pub async fn get_total_spending_by_date_range(
     pool: &Pool<Sqlite>,
     start_date: NaiveDate,
     end_date: NaiveDate
-) -> Result<Vec<MonthlyAmount>, sqlx::Error> {
+) -> Result<Cents, sqlx::Error> {
     let query = r#"
         SELECT
-            strftime('%Y-%m', t.date) AS month,
             SUM(t.amount_cents) AS amount
         FROM 'transaction' t
         JOIN category c on t.category_id=c.id
         WHERE c.name != 'Income' 
             AND date(t.date) >= date($1) 
             AND date(t.date) <= date($2)
-        GROUP BY strftime('%m', t.date)
     "#;
 
-    let res: Vec<MonthlyAmount> = sqlx::query_as(query)
+    let res: Cents = sqlx::query_scalar(query)
         .bind(start_date)
         .bind(end_date)
-        .fetch_all(pool)
+        .fetch_one(pool)
         .await?;
 
     Ok(res)

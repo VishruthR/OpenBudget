@@ -7,42 +7,38 @@
     import { onMount } from "svelte";
   import { Plot, Line, AxisX, AxisY, RuleX, Pointer, HTMLTooltip } from "svelteplot";
 
-  interface DatedAmount {
+  interface MonthlyStat {
     date: Date;
-    amount: number;
+    income: number
+    spending: number;
   }
 
-  let income = $state<DatedAmount[]>([]);
-  let spending = $state<DatedAmount[]>([]);
+  let monthlyStats = $state<MonthlyStat[]>([]);
 
+  // We represent months by the 1st of each month. The date carries no semantic meaning in this component.
   const today = new Date();
-  let lastYear = new Date();
-  lastYear.setFullYear(lastYear.getFullYear() - 1);
+  const lastTwelveMonths = [...Array(11).keys()].map((offset) => new Date(today.getFullYear(), today.getMonth() - offset, 1));
 
   const loadMonthlyStats = async () => {
-    const [monthlyIncome, monthlySpending] = await transactionsApi.getMonthlyIncomeAndSpending(lastYear.toISOString().slice(0, 10), today.toISOString().slice(0, 10));
+    const promises = lastTwelveMonths.map((month) => {
+        const endOfMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0);
+        return transactionsApi.getSpendingAndIncomeByDateRange(month.toISOString().slice(0, 10), endOfMonth.toISOString().slice(0, 10));
+    });
+    const spendingAndIncome = await Promise.all(promises);
 
-    income = monthlyIncome.map((m) => {
-      return {
-        date: new Date(m.month),
-        amount: m.amount
-      }
-    })
-
-    spending = monthlySpending.map((m) => {
-      return {
-        date: new Date(m.month),
-        amount: m.amount
-      }
-    })
+    monthlyStats = spendingAndIncome.map(([spending, income], idx) => {
+        return {
+          date: lastTwelveMonths[idx],
+          income: spending,
+          spending: income 
+        }
+    });
   }
   onMount(loadMonthlyStats);
 
   // This array enables us to render the same tooltip for the income and spending lines
   const tooltipAnchors = $derived.by(() => {
-    const combinedData = income.map((data, idx) => { return { date: data.date, income: data.amount, spending: spending[idx].amount }; });
-
-    return combinedData.flatMap((d) => [
+    return monthlyStats.flatMap((d) => [
       { ...d, amount: d.income },
       { ...d, amount: d.spending },
     ]);
@@ -53,8 +49,9 @@
     return `${monthString} ${date.getFullYear()}`;
   }
 
-  const monthTimestamps = $derived(income.map((d) => d.date.getTime()));
-  const amounts = $derived([...income.map((d) => d.amount), ...spending.map((d) => d.amount)]);
+  // We convert to epoch milliseconds to enable proper equality comparisons between Dates
+  const monthTimestamps = $derived(monthlyStats.map((d) => d.date.getTime()));
+  const amounts = $derived(monthlyStats.map((d) => [d.income, d.spending]).flat());
   const minAmount = $derived(Math.min(...amounts));
   const maxAmount = $derived(Math.max(...amounts));
 
@@ -71,32 +68,22 @@
     return `${horizontal} ${vertical}`;
   }
 
-  // const mappedIncome = $derived(income.map(i => Object.fromEntries(i)));
-  const incomeRecord = $derived(income.map((i) => {
-    return {
-      "date": i.date,
-      "amount": i.amount,
-    }
-  }));
-
-  const spendingRecord = $derived(spending.map((i) => {
-    return {
-      "date": i.date,
-      "amount": i.amount,
-    }
-  }))
+  // SveltePlot wants string-indexable dictionaries
+  const monthlyStatsRecord = $derived(monthlyStats.map((d) => Object.fromEntries(Object.entries(d))));
 </script>
 
 <div class="container">
   <Plot grid subtitle="Month-by-month spending" height={320} marginTop={10} >
-    <Line data={incomeRecord} x="date" y="amount" stroke="#378727" strokeWidth={2} marker="circle-stroke" markerScale={0.75} />
-    <Line data={spendingRecord} x="date" y="amount" stroke="#DC1716" strokeWidth={2} marker="circle-stroke" markerScale={0.75} />
+    <Line data={monthlyStatsRecord} x="date" y="income" stroke="#378727" strokeWidth={2} marker="circle-stroke" markerScale={0.75} />
+    <Line data={monthlyStatsRecord} x="date" y="spending" stroke="#DC1716" strokeWidth={2} marker="circle-stroke" markerScale={0.75} />
     <AxisX
-        data={income.map((d) => d.date as Date)}
+        title=""
+        data={monthTimestamps}
         tickFontSize={9} 
         tickSize={0}
         tickPadding={10}
-        tickFormat={(d) => formatDate(d as Date)} />
+        tickFormat={(d) => formatDate(new Date(d as number))} 
+    />
     <AxisY
         title=""
         tickCount={6} 
