@@ -1,2 +1,5 @@
 # Rust backend
 src-tauri
+
+# auto-gen files
+package-lock.json
