@@ -34,11 +34,11 @@ jobs:
       - name: checkout code
         uses: actions/checkout@v4
 
-      -name: run formatter
+      - name: run formatter
         run: |
           cargo fmt
 
-      -name: check for formatting changes
+      - name: check for formatting changes
         run: |
           git diff --exit-code
 
@@ -49,6 +49,3 @@ jobs:
       - name: test
         run: |
           cargo test
-
-
-
