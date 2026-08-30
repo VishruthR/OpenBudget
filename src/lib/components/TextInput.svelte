@@ -4,7 +4,7 @@
 -->
 
 <script lang="ts">
-  import type { HTMLInputAttributes } from 'svelte/elements';
+  import type { HTMLInputAttributes } from "svelte/elements";
 
   interface Props extends HTMLInputAttributes {
     value?: string;
@@ -13,7 +13,7 @@
   }
 
   let {
-    value = $bindable(''),
+    value = $bindable(""),
     maxlength,
     showCounter = false,
     ...restProps

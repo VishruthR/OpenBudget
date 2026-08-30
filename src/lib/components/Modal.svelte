@@ -90,7 +90,9 @@
     border-radius: 6px;
     color: var(--grey-200);
     cursor: pointer;
-    transition: color 0.15s ease, background-color 0.15s ease;
+    transition:
+      color 0.15s ease,
+      background-color 0.15s ease;
   }
 
   :global(.modal-close:hover) {

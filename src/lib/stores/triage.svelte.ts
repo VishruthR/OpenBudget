@@ -2,7 +2,7 @@ import { transactionsApi } from "$lib/api/transactions";
 
 /**
  * Sidebar displays this number
- * Category updates should call loadUncategorizedCount after updating 
+ * Category updates should call loadUncategorizedCount after updating
  * a transactions category
  */
 export const triageStore = $state({ uncategorizedCount: 0 });

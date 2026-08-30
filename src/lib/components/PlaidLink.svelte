@@ -35,7 +35,7 @@
     try {
       item_id = await plaidApi.generateAccessTokenFromHostedLink();
     } catch (err) {
-      error = err as string
+      error = err as string;
       console.log(error);
     } finally {
       loading = false;
@@ -50,7 +50,9 @@
   {#if import.meta.env.DEV}
     <!-- Dev-only: in `tauri dev` the pennyful:// deep link can't reach us, so
          finish the Hosted Link flow by hand. Prod uses the deep link. -->
-    <button class="link-btn" onclick={handleRedirect}>Done with flow (dev)</button>
+    <button class="link-btn" onclick={handleRedirect}
+      >Done with flow (dev)</button
+    >
   {/if}
   {#if error}
     <p class="error">{error}</p>

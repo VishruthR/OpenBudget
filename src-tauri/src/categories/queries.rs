@@ -65,13 +65,14 @@ pub async fn create_category(
     icon: &Option<String>,
     budget_cents: Option<i64>,
 ) -> Result<i64, sqlx::Error> {
-    let id: i64 =
-        sqlx::query_scalar("INSERT INTO category (name, color, icon) VALUES (?, ?, ?) RETURNING id")
-            .bind(name)
-            .bind(color)
-            .bind(icon)
-            .fetch_one(pool)
-            .await?;
+    let id: i64 = sqlx::query_scalar(
+        "INSERT INTO category (name, color, icon) VALUES (?, ?, ?) RETURNING id",
+    )
+    .bind(name)
+    .bind(color)
+    .bind(icon)
+    .fetch_one(pool)
+    .await?;
 
     if let Some(cents) = budget_cents {
         upsert_budget(pool, id, cents).await?;
@@ -197,10 +198,7 @@ mod tests {
         Ok(())
     }
 
-    fn overview_for<'a>(
-        overviews: &'a [CategoryOverview],
-        id: i64,
-    ) -> &'a CategoryOverview {
+    fn overview_for<'a>(overviews: &'a [CategoryOverview], id: i64) -> &'a CategoryOverview {
         overviews
             .iter()
             .find(|o| o.id == id)
@@ -247,10 +245,16 @@ mod tests {
         pool: Pool<Sqlite>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         upsert_budget(&pool, 3, 50000).await?;
-        assert_eq!(overview_for(&get_category_overviews(&pool).await?, 3).budget_cents, Some(50000));
+        assert_eq!(
+            overview_for(&get_category_overviews(&pool).await?, 3).budget_cents,
+            Some(50000)
+        );
 
         upsert_budget(&pool, 3, 12500).await?;
-        assert_eq!(overview_for(&get_category_overviews(&pool).await?, 3).budget_cents, Some(12500));
+        assert_eq!(
+            overview_for(&get_category_overviews(&pool).await?, 3).budget_cents,
+            Some(12500)
+        );
         Ok(())
     }
 
@@ -258,7 +262,14 @@ mod tests {
     async fn test_create_category_with_budget(
         pool: Pool<Sqlite>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let id = create_category(&pool, &"Coffee".to_string(), &"#6F4E37".to_string(), &Some("mdi:coffee".to_string()), Some(2000)).await?;
+        let id = create_category(
+            &pool,
+            &"Coffee".to_string(),
+            &"#6F4E37".to_string(),
+            &Some("mdi:coffee".to_string()),
+            Some(2000),
+        )
+        .await?;
 
         let overviews = get_category_overviews(&pool).await?;
         let created = overview_for(&overviews, id);
@@ -274,7 +285,15 @@ mod tests {
         pool: Pool<Sqlite>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         // Category 3 (Housing) starts with no budget.
-        update_category(&pool, 3, &"Home".to_string(), &"#000000".to_string(), &Some("mdi:home".to_string()), Some(30000)).await?;
+        update_category(
+            &pool,
+            3,
+            &"Home".to_string(),
+            &"#000000".to_string(),
+            &Some("mdi:home".to_string()),
+            Some(30000),
+        )
+        .await?;
 
         let overviews = get_category_overviews(&pool).await?;
         let updated = overview_for(&overviews, 3);

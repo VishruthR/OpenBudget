@@ -7,8 +7,8 @@
 -->
 
 <script lang="ts">
-  import Awesome from 'svelte-awesome-color-picker';
-  import ColorPickerTrigger from './ColorPickerTrigger.svelte';
+  import Awesome from "svelte-awesome-color-picker";
+  import ColorPickerTrigger from "./ColorPickerTrigger.svelte";
 
   interface Props {
     /** selected hex color, or null when nothing is chosen yet */
@@ -19,7 +19,11 @@
     name?: string;
   }
 
-  let { hex = $bindable(null), placeholder = 'Choose a color', name }: Props = $props();
+  let {
+    hex = $bindable(null),
+    placeholder = "Choose a color",
+    name,
+  }: Props = $props();
 </script>
 
 <div class="colorpicker">

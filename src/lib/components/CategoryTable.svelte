@@ -13,7 +13,7 @@
   import CategoryPill from "$lib/components/CategoryPill.svelte";
   import BudgetInput from "$lib/components/BudgetInput.svelte";
   import { formatCentsAsDollars } from "$lib/utils/format";
-    import { SPECIAL_CATEGORIES } from "$lib/utils/constants";
+  import { SPECIAL_CATEGORIES } from "$lib/utils/constants";
 
   interface Props {
     categories: CategoryOverview[];
@@ -23,7 +23,8 @@
     height?: string;
   }
 
-  let { categories, onBudgetChange, onEdit, onDelete, height }: Props = $props();
+  let { categories, onBudgetChange, onEdit, onDelete, height }: Props =
+    $props();
 
   let tableHeight = $derived(height ? height : "100%");
 
@@ -34,7 +35,9 @@
   function spentDisplay(category: CategoryOverview): string {
     const spent = formatCentsAsDollars(category.spent_cents);
     if (hasBudget(category)) {
-      const percent = Math.round((category.spent_cents / category.budget_cents!) * 100);
+      const percent = Math.round(
+        (category.spent_cents / category.budget_cents!) * 100,
+      );
       return `${spent} (${percent}%)`;
     }
     return spent;
@@ -66,7 +69,7 @@
             <CategoryPill
               name={category.name}
               icon={category.icon}
-              color={"transparent"}
+              color="transparent"
               textColor={category.color}
             />
           </td>
@@ -131,7 +134,9 @@
     padding: 24px 20px;
     font-weight: bold;
     color: var(--grey-500);
-    box-shadow: inset 0px 0px #000, 0 1px var(--grey-100);
+    box-shadow:
+      inset 0px 0px #000,
+      0 1px var(--grey-100);
   }
 
   th.col-category {
@@ -207,7 +212,9 @@
     border-radius: 6px;
     color: var(--grey-500);
     cursor: pointer;
-    transition: background-color 0.15s ease, color 0.15s ease;
+    transition:
+      background-color 0.15s ease,
+      color 0.15s ease;
   }
 
   .icon-button:hover {

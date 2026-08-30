@@ -46,8 +46,9 @@
 <Modal bind:open title="Delete Category">
   <div class="body">
     <p class="paragraph">
-      Deleting <strong>{category?.name}</strong> is permanent and cannot be undone. All
-      transactions in this category will be set to <strong>Uncategorized</strong>.
+      Deleting <strong>{category?.name}</strong> is permanent and cannot be
+      undone. All transactions in this category will be set to
+      <strong>Uncategorized</strong>.
     </p>
 
     {#if error}
@@ -55,8 +56,14 @@
     {/if}
 
     <div class="actions">
-      <Button onclick={() => (open = false)} disabled={submitting}>Cancel</Button>
-      <Button color="var(--loss-red)" onclick={handleDelete} disabled={submitting}>Delete</Button>
+      <Button onclick={() => (open = false)} disabled={submitting}
+        >Cancel</Button
+      >
+      <Button
+        color="var(--loss-red)"
+        onclick={handleDelete}
+        disabled={submitting}>Delete</Button
+      >
     </div>
   </div>
 </Modal>

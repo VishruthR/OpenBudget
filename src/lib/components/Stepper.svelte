@@ -4,7 +4,7 @@
 -->
 
 <script lang="ts">
-  import type { Snippet } from 'svelte';
+  import type { Snippet } from "svelte";
 
   interface Step {
     name: string;
@@ -21,7 +21,7 @@
   }
 
   let { steps, currentStep = $bindable(0) }: Props = $props();
-  
+
   const canProceed = $derived(steps[currentStep].canProceed?.() ?? true);
 
   function goNext() {
@@ -47,11 +47,14 @@
 <div class="stepper">
   <!-- Step indicators -->
   <div class="step-indicators">
-    {#each steps as step, index}
+    {#each steps as step, index (step.name)}
       <div class="step-item">
         <div class="step-circle-container">
           {#if index > 0}
-            <div class="step-line step-line-left" class:completed={index <= currentStep}></div>
+            <div
+              class="step-line step-line-left"
+              class:completed={index <= currentStep}
+            ></div>
           {/if}
           <div
             class="step-circle paragraph-bold"
@@ -62,13 +65,13 @@
             {index + 1}
           </div>
           {#if index < steps.length - 1}
-            <div class="step-line step-line-right" class:completed={index < currentStep}></div>
+            <div
+              class="step-line step-line-right"
+              class:completed={index < currentStep}
+            ></div>
           {/if}
         </div>
-        <span
-          class="step-label paragraph"
-          class:active={index <= currentStep}
-        >
+        <span class="step-label paragraph" class:active={index <= currentStep}>
           {step.name}
         </span>
       </div>
@@ -91,8 +94,14 @@
     </div>
     <div class="nav-right">
       {#if !steps[currentStep].hideNextButton}
-        <button class="nav-button paragraph" class:disabled={!canProceed} disabled={!canProceed} onclick={goNext}>
-          {currentStep === steps.length - 1 ? 'Complete' : 'Next'} <span class="nav-chevron">&rsaquo;</span>
+        <button
+          class="nav-button paragraph"
+          class:disabled={!canProceed}
+          disabled={!canProceed}
+          onclick={goNext}
+        >
+          {currentStep === steps.length - 1 ? "Complete" : "Next"}
+          <span class="nav-chevron">&rsaquo;</span>
         </button>
       {/if}
     </div>
@@ -142,7 +151,9 @@
     justify-content: center;
     flex-shrink: 0;
     z-index: 1;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease;
   }
 
   .step-circle.completed {

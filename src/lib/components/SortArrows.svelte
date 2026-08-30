@@ -19,26 +19,20 @@
   let { column, activeColumn, direction }: Props = $props();
 
   const isActive = $derived(column === activeColumn);
-  const showAsc = $derived(!isActive || direction === null || direction === "Asc");
-  const showDesc = $derived(!isActive || direction === null || direction === "Desc");
+  const showAsc = $derived(
+    !isActive || direction === null || direction === "Asc",
+  );
+  const showDesc = $derived(
+    !isActive || direction === null || direction === "Desc",
+  );
 </script>
 
 <span class="arrows-container">
   {#if showAsc}
-    <Icon 
-      icon="bxs:up-arrow" 
-      width={10} 
-      height={10}
-      class="arrow arrow-up"
-    />
+    <Icon icon="bxs:up-arrow" width={10} height={10} class="arrow arrow-up" />
   {/if}
   {#if showDesc}
-    <Icon 
-      icon="bxs:up-arrow" 
-      width={10} 
-      height={10}
-      class="arrow arrow-down"
-    />
+    <Icon icon="bxs:up-arrow" width={10} height={10} class="arrow arrow-down" />
   {/if}
 </span>
 

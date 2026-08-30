@@ -18,7 +18,9 @@
   let editing = $state(false);
   let text = $state("");
 
-  const display = $derived(budgetCents === null ? "" : formatCentsAsDollars(budgetCents));
+  const display = $derived(
+    budgetCents === null ? "" : formatCentsAsDollars(budgetCents),
+  );
 
   function startEdit() {
     editing = true;
@@ -48,7 +50,7 @@
   class="budget-input paragraph"
   inputmode="decimal"
   placeholder="$0"
-  class:slim={slim}
+  class:slim
   value={editing ? text : display}
   oninput={(e) => (text = e.currentTarget.value)}
   onfocus={startEdit}

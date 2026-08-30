@@ -6,15 +6,21 @@
 -->
 
 <script lang="ts">
-  import SortArrows, { type SortDirection } from "$lib/components/SortArrows.svelte";
+  import SortArrows, {
+    type SortDirection,
+  } from "$lib/components/SortArrows.svelte";
   import CategoryCombobox from "$lib/components/CategoryCombobox.svelte";
   import { formatSignedCurrencyChange } from "$lib/utils/format";
   import { transactionsApi } from "$lib/api/transactions";
   import { categoriesApi } from "$lib/api/categories";
-  import type { Category, TransactionWithAccount, PaginedSortedTransactionsResponse } from "$lib/types";
+  import type {
+    Category,
+    TransactionWithAccount,
+    PaginedSortedTransactionsResponse,
+  } from "$lib/types";
   import Icon from "@iconify/svelte";
-    import { onMount } from "svelte";
-    import { loadUncategorizedCount } from "$lib/stores/triage.svelte";
+  import { onMount } from "svelte";
+  import { loadUncategorizedCount } from "$lib/stores/triage.svelte";
 
   interface Props {
     height?: string;
@@ -26,15 +32,16 @@
   let sortDirection: SortDirection = $state("Desc");
   let page: number = $state(1);
   let pageSize: number = $state(25);
-  let paginatedResponse: PaginedSortedTransactionsResponse | null = $state.raw(null); 
-  
+  let paginatedResponse: PaginedSortedTransactionsResponse | null =
+    $state.raw(null);
+
   let transactions: TransactionWithAccount[] = $derived.by(() => {
     if (paginatedResponse !== null) {
-      return paginatedResponse.transactions
+      return paginatedResponse.transactions;
     } else {
       return [];
     }
-  })
+  });
 
   let categories: Category[] = $state([]);
   const loadCategories = async () => {
@@ -43,14 +50,25 @@
     } catch (e) {
       console.error(e);
     }
-  }
-  onMount(loadCategories)
+  };
+  onMount(loadCategories);
 
-  async function handleCategoryChange(txn: TransactionWithAccount, categoryId: number) {
+  async function handleCategoryChange(
+    txn: TransactionWithAccount,
+    categoryId: number,
+  ) {
     const category = categories.find((c) => c.id === categoryId);
-    if (!category || paginatedResponse === null || txn.transaction.category_id === categoryId) return;
+    if (
+      !category ||
+      paginatedResponse === null ||
+      txn.transaction.category_id === categoryId
+    )
+      return;
     try {
-      await transactionsApi.updateTransactionCategory(txn.transaction.id, categoryId);
+      await transactionsApi.updateTransactionCategory(
+        txn.transaction.id,
+        categoryId,
+      );
       await loadUncategorizedCount();
       // Optimistically reflect the change in the row without a refetch. Since
       // paginatedResponse is $state.raw we reassign a fresh object.
@@ -65,7 +83,7 @@
                 category_icon: category.icon ?? null,
                 transaction: { ...t.transaction, category_id: category.id },
               }
-            : t
+            : t,
         ),
       };
     } catch (e) {
@@ -93,7 +111,8 @@
   }
 
   const handleNextPage = () => {
-    if (paginatedResponse === null || page >= paginatedResponse.num_pages) return;
+    if (paginatedResponse === null || page >= paginatedResponse.num_pages)
+      return;
     page++;
   };
   const handlePrevPage = () => {
@@ -115,7 +134,7 @@
           currPage,
           currPageSize,
           currSortColumn,
-          currSortDirection
+          currSortDirection,
         );
         // If a user flips between pages rapidly this could cause multiple requests
         // to be in flight. To maintain a consistent state we must ignore older requests
@@ -124,26 +143,33 @@
           return;
         }
         paginatedResponse = response;
-      } catch(e) {
+      } catch (e) {
         let error = e as string;
         console.error(error);
       }
-    }
+    };
 
     fetchTransactions();
-  })
+  });
 
   const getShowingRange = () => {
-    if (paginatedResponse === null ) { return [0, 0]; }
+    if (paginatedResponse === null) {
+      return [0, 0];
+    }
 
     let rangeStart = (page - 1) * pageSize + 1;
-    let rangeEnd = Math.min(page * pageSize, paginatedResponse.num_transactions); 
+    let rangeEnd = Math.min(
+      page * pageSize,
+      paginatedResponse.num_transactions,
+    );
 
     return [rangeStart, rangeEnd];
-  }
+  };
 
-  const dateFormatter = new Intl.DateTimeFormat("en-US", { 
-    month: "short", day: "numeric", year: "numeric" 
+  const dateFormatter = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
   });
   function formatTableDate(date: string): string {
     // Expect date string in form YYYY-MM-DD
@@ -151,9 +177,7 @@
     return dateFormatter.format(new Date(year, month - 1, day));
   }
 
-  let tableHeight = $derived(
-    height ? height : '100%'
-  )
+  let tableHeight = $derived(height ? height : "100%");
 </script>
 
 <div class="transactions-table-container" style:height={tableHeight}>
@@ -163,26 +187,42 @@
         <th class="col-date">
           <button class="sort-button" onclick={() => toggleSort("date")}>
             Date
-            <SortArrows column="date" activeColumn={sortColumn} direction={sortDirection} />
+            <SortArrows
+              column="date"
+              activeColumn={sortColumn}
+              direction={sortDirection}
+            />
           </button>
         </th>
         <th class="col-account">
           <button class="sort-button" onclick={() => toggleSort("account")}>
             Account
-            <SortArrows column="account" activeColumn={sortColumn} direction={sortDirection} />
+            <SortArrows
+              column="account"
+              activeColumn={sortColumn}
+              direction={sortDirection}
+            />
           </button>
         </th>
         <th class="col-name">
           <button class="sort-button" onclick={() => toggleSort("name")}>
             Name
-            <SortArrows column="name" activeColumn={sortColumn} direction={sortDirection} />
+            <SortArrows
+              column="name"
+              activeColumn={sortColumn}
+              direction={sortDirection}
+            />
           </button>
         </th>
         <th class="col-category">Category</th>
         <th class="col-amount">
           <button class="sort-button" onclick={() => toggleSort("amount")}>
             Amount
-            <SortArrows column="amount" activeColumn={sortColumn} direction={sortDirection} />
+            <SortArrows
+              column="amount"
+              activeColumn={sortColumn}
+              direction={sortDirection}
+            />
           </button>
         </th>
       </tr>
@@ -197,20 +237,32 @@
           </td>
           <td colspan="3" class="foot-controls">
             {#if paginatedResponse.prev_page !== null}
-              <Icon icon="material-symbols:chevron-left" class="page-controls" width={24} onclick={handlePrevPage} />
+              <Icon
+                icon="material-symbols:chevron-left"
+                class="page-controls"
+                width={24}
+                onclick={handlePrevPage}
+              />
             {/if}
             <p class="page-count">{page} of {paginatedResponse?.num_pages}</p>
             {#if paginatedResponse.next_page !== null}
-              <Icon icon="material-symbols:chevron-right" class="page-controls" width={24} onclick={handleNextPage} />
+              <Icon
+                icon="material-symbols:chevron-right"
+                class="page-controls"
+                width={24}
+                onclick={handleNextPage}
+              />
             {/if}
           </td>
         {/if}
       </tr>
     </tfoot>
     <tbody>
-      {#each transactions as transaction, index}
+      {#each transactions as transaction, index (transaction.transaction.id)}
         <tr class={index % 2 === 0 ? "row-white" : "row-grey"}>
-          <td class="col-date">{formatTableDate(transaction.transaction.date)}</td>
+          <td class="col-date"
+            >{formatTableDate(transaction.transaction.date)}</td
+          >
           <td class="col-account">
             <span class="ellipsis">{transaction.account_name}</span>
           </td>
@@ -219,12 +271,17 @@
           </td>
           <td class="col-category">
             <CategoryCombobox
-              categories={categories}
-              value={String(transaction.transaction.category_id)}
-              onSelect={(categoryId) => handleCategoryChange(transaction, categoryId)}
+              {categories}
+              value={transaction.transaction.category_id}
+              onSelect={(categoryId) =>
+                handleCategoryChange(transaction, categoryId)}
             />
           </td>
-          <td class="col-amount {transaction.transaction.amount >= 0 ? 'positive' : 'negative'}">
+          <td
+            class="col-amount {transaction.transaction.amount >= 0
+              ? 'positive'
+              : 'negative'}"
+          >
             {formatSignedCurrencyChange(transaction.transaction.amount)}
           </td>
         </tr>
@@ -258,8 +315,10 @@
     text-align: left;
     padding: 24px 20px;
     font-weight: bold;
-    color: var(--grey-500); 
-    box-shadow: inset 0px 0px #000, 0 1px var(--grey-100);
+    color: var(--grey-500);
+    box-shadow:
+      inset 0px 0px #000,
+      0 1px var(--grey-100);
   }
 
   th.col-amount {

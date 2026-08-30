@@ -1,7 +1,7 @@
+use crate::types::{Bank, LinkedInstitution};
 use serde_json::Value;
 use sqlx::{Pool, Sqlite};
 use std::collections::HashMap;
-use crate::types::{Bank, LinkedInstitution};
 
 pub async fn upsert_item_from_plaid(
     pool: &Pool<Sqlite>,

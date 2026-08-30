@@ -8,27 +8,27 @@
 -->
 
 <script lang="ts">
-  import { Select } from 'bits-ui';
-  import Icon from '@iconify/svelte';
-  import type { Snippet } from 'svelte';
-  import type { DropdownOption } from '$lib/types';
+  import { Select } from "bits-ui";
+  import Icon from "@iconify/svelte";
+  import type { Snippet } from "svelte";
+  import type { DropdownOption } from "$lib/types";
 
   interface Props {
     options: DropdownOption[];
     onSelect?: (value: string | null) => void;
     placeholder?: string;
     value?: string | null;
-    variant?: 'default' | 'slim';
+    variant?: "default" | "slim";
     item?: Snippet<[DropdownOption]>;
   }
 
   let {
     options,
     onSelect,
-    placeholder = 'Select...',
+    placeholder = "Select...",
     value = $bindable<string | null>(null),
-    variant = 'default',
-    item
+    variant = "default",
+    item,
   }: Props = $props();
 
   let isOpen = $state(false);
@@ -38,11 +38,13 @@
     onSelect?.(v ?? null);
   }
 
-  const selectedOption = $derived(options.find(o => o.value === value));
-  const optionsContent = $derived(Object.fromEntries(options.map(o => [o.value, o.content])));
+  const selectedOption = $derived(options.find((o) => o.value === value));
+  const optionsContent = $derived(
+    Object.fromEntries(options.map((o) => [o.value, o.content])),
+  );
 </script>
 
-<div class="combobox" class:open={isOpen} class:slim={variant === 'slim'}>
+<div class="combobox" class:open={isOpen} class:slim={variant === "slim"}>
   <Select.Root
     type="single"
     value={value ?? undefined}
@@ -67,7 +69,11 @@
     <Select.Content class="menu" sideOffset={4}>
       <Select.Viewport>
         {#each options as option (option.value)}
-          <Select.Item value={option.value} label={option.value} class="item paragraph">
+          <Select.Item
+            value={option.value}
+            label={option.value}
+            class="item paragraph"
+          >
             {#if item}
               {@render item(option)}
             {:else}

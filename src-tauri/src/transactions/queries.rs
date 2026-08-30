@@ -1,14 +1,14 @@
-use crate::{plaid::types::PlaidTransaction, types::SortDir};
 use crate::types::{Cents, TransactionWithAccount};
-use chrono::NaiveDate;
+use crate::{plaid::types::PlaidTransaction, types::SortDir};
 use ::plaid::model::RemovedTransaction;
+use chrono::NaiveDate;
 use sqlx::{Pool, QueryBuilder, Sqlite, SqliteConnection};
 use std::collections::HashMap;
 
 pub async fn get_total_income_by_date_range(
     pool: &Pool<Sqlite>,
     start_date: NaiveDate,
-    end_date: NaiveDate
+    end_date: NaiveDate,
 ) -> Result<Cents, sqlx::Error> {
     let query = r#"
         SELECT
@@ -32,7 +32,7 @@ pub async fn get_total_income_by_date_range(
 pub async fn get_total_spending_by_date_range(
     pool: &Pool<Sqlite>,
     start_date: NaiveDate,
-    end_date: NaiveDate
+    end_date: NaiveDate,
 ) -> Result<Cents, sqlx::Error> {
     let query = r#"
         SELECT
@@ -55,7 +55,7 @@ pub async fn get_total_spending_by_date_range(
 
 pub async fn get_transactions_by_category(
     pool: &Pool<Sqlite>,
-    category_name: &String
+    category_name: &String,
 ) -> Result<Vec<TransactionWithAccount>, sqlx::Error> {
     let query = r#"
         SELECT
@@ -89,12 +89,11 @@ pub async fn get_transactions_by_category(
     Ok(res)
 }
 
-pub async fn get_num_transactions(
-    pool: &Pool<Sqlite>
-) -> Result<i64, sqlx::Error> {
-    let res: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM 'transaction' WHERE deleted_at IS NULL")
-        .fetch_one(pool)
-        .await?;
+pub async fn get_num_transactions(pool: &Pool<Sqlite>) -> Result<i64, sqlx::Error> {
+    let res: i64 =
+        sqlx::query_scalar("SELECT COUNT(*) FROM 'transaction' WHERE deleted_at IS NULL")
+            .fetch_one(pool)
+            .await?;
 
     Ok(res)
 }
@@ -118,17 +117,17 @@ pub async fn get_num_transactions_by_category(
     Ok(res)
 }
 
-
 pub async fn get_paginated_sorted_transactions(
     pool: &Pool<Sqlite>,
     page: &i64,
     page_size: &i64,
     sort_col: &Option<String>,
-    sort_dir: &Option<SortDir>
+    sort_dir: &Option<SortDir>,
 ) -> Result<Vec<TransactionWithAccount>, sqlx::Error> {
     let offset = std::cmp::max(page - 1, 0) * page_size;
 
-    let mut query_builder: QueryBuilder<Sqlite> = QueryBuilder::new(r#"
+    let mut query_builder: QueryBuilder<Sqlite> = QueryBuilder::new(
+        r#"
         SELECT
             t.id,
             t.plaid_transaction_id,
@@ -150,7 +149,8 @@ pub async fn get_paginated_sorted_transactions(
         JOIN bank b ON a.bank_id=b.id
         JOIN category c ON t.category_id=c.id
         WHERE t.deleted_at IS NULL
-    "#);
+    "#,
+    );
 
     query_builder.push(" ORDER BY ");
     if let Some(col) = sort_col.as_deref() {
@@ -159,12 +159,12 @@ pub async fn get_paginated_sorted_transactions(
             "account" => "a.name",
             "name" => "t.name",
             "amount" => "t.amount_cents",
-            _ => return Err(sqlx::Error::Protocol("Invalid sort column".into()))
+            _ => return Err(sqlx::Error::Protocol("Invalid sort column".into())),
         };
 
         let sort_dir_final = match sort_dir.unwrap_or(SortDir::Asc) {
             SortDir::Asc => "ASC",
-            SortDir::Desc => "DESC"
+            SortDir::Desc => "DESC",
         };
 
         query_builder.push(sort_col_final);
@@ -180,7 +180,8 @@ pub async fn get_paginated_sorted_transactions(
     query_builder.push(" OFFSET ");
     query_builder.push_bind(offset);
 
-    let transactions: Vec<TransactionWithAccount> = query_builder.build_query_as::<TransactionWithAccount>()
+    let transactions: Vec<TransactionWithAccount> = query_builder
+        .build_query_as::<TransactionWithAccount>()
         .fetch_all(pool)
         .await?;
 
@@ -246,11 +247,10 @@ pub async fn update_transaction_category(
         .await?;
 
     // Remember this decision so future transactions from the same merchant inherit
-    let name: Option<String> =
-        sqlx::query_scalar(r#"SELECT name FROM 'transaction' WHERE id=?"#)
-            .bind(transaction_id)
-            .fetch_optional(&mut *tx)
-            .await?;
+    let name: Option<String> = sqlx::query_scalar(r#"SELECT name FROM 'transaction' WHERE id=?"#)
+        .bind(transaction_id)
+        .fetch_optional(&mut *tx)
+        .await?;
 
     if let Some(name) = name {
         if !name.is_empty() {
@@ -267,9 +267,7 @@ pub async fn update_transaction_category(
     Ok(())
 }
 
-pub async fn get_category_rules(
-    pool: &Pool<Sqlite>,
-) -> Result<HashMap<String, i64>, sqlx::Error> {
+pub async fn get_category_rules(pool: &Pool<Sqlite>) -> Result<HashMap<String, i64>, sqlx::Error> {
     let rules: Vec<(String, i64)> =
         sqlx::query_as(r#"SELECT name, category_id FROM transaction_category_rule"#)
             .fetch_all(pool)
@@ -300,10 +298,7 @@ async fn upsert_category_rule(
     Ok(())
 }
 
-async fn delete_category_rule(
-    conn: &mut SqliteConnection,
-    name: &str,
-) -> Result<(), sqlx::Error> {
+async fn delete_category_rule(conn: &mut SqliteConnection, name: &str) -> Result<(), sqlx::Error> {
     sqlx::query(r#"DELETE FROM transaction_category_rule WHERE name=?"#)
         .bind(name)
         .execute(&mut *conn)
@@ -370,8 +365,14 @@ mod tests {
     async fn all_transactions(
         pool: &Pool<Sqlite>,
     ) -> Result<Vec<TransactionWithAccount>, sqlx::Error> {
-        get_paginated_sorted_transactions(pool, &1, &10, &Some("name".to_owned()), &Some(SortDir::Asc))
-            .await
+        get_paginated_sorted_transactions(
+            pool,
+            &1,
+            &10,
+            &Some("name".to_owned()),
+            &Some(SortDir::Asc),
+        )
+        .await
     }
 
     fn plaid_txn(
@@ -400,13 +401,11 @@ mod tests {
         // With no `Income` transactions, we should see 0
         let start_date = NaiveDate::parse_from_str("2025-12-01", "%Y-%m-%d")?;
         let end_date = NaiveDate::parse_from_str("2025-12-31", "%Y-%m-%d")?;
-        let income = get_total_income_by_date_range(&pool, start_date, end_date)
-            .await?;
+        let income = get_total_income_by_date_range(&pool, start_date, end_date).await?;
         assert_eq!(income, Cents::from_dollars_f64(0_f64).unwrap());
-        
+
         update_transaction_category(&pool, 1, 2, 1).await?;
-        let income = get_total_income_by_date_range(&pool, start_date, end_date)
-            .await?;
+        let income = get_total_income_by_date_range(&pool, start_date, end_date).await?;
         assert_eq!(income, Cents::from_dollars_f64(-5.77_f64).unwrap());
 
         Ok(())
@@ -419,14 +418,12 @@ mod tests {
         // No transactions in date range should return 0
         let start_date = NaiveDate::parse_from_str("2026-12-01", "%Y-%m-%d")?;
         let end_date = NaiveDate::parse_from_str("2026-12-31", "%Y-%m-%d")?;
-        let income = get_total_spending_by_date_range(&pool, start_date, end_date)
-            .await?;
+        let income = get_total_spending_by_date_range(&pool, start_date, end_date).await?;
         assert_eq!(income, Cents::from_dollars_f64(0_f64).unwrap());
-        
+
         let start_date = NaiveDate::parse_from_str("2025-12-01", "%Y-%m-%d")?;
         let end_date = NaiveDate::parse_from_str("2025-12-31", "%Y-%m-%d")?;
-        let income = get_total_spending_by_date_range(&pool, start_date, end_date)
-            .await?;
+        let income = get_total_spending_by_date_range(&pool, start_date, end_date).await?;
         assert_eq!(income, Cents::from_dollars_f64(-19.27_f64).unwrap());
 
         Ok(())
@@ -618,11 +615,14 @@ mod tests {
         // Ascending amounts: id2=-10.90, id1=-5.77, id3=-1.90, id4=-0.70
         let sort_col = Some("amount".to_owned());
         let page1 =
-            get_paginated_sorted_transactions(&pool, &1, &2, &sort_col, &Some(SortDir::Asc)).await?;
+            get_paginated_sorted_transactions(&pool, &1, &2, &sort_col, &Some(SortDir::Asc))
+                .await?;
         let page2 =
-            get_paginated_sorted_transactions(&pool, &2, &2, &sort_col, &Some(SortDir::Asc)).await?;
+            get_paginated_sorted_transactions(&pool, &2, &2, &sort_col, &Some(SortDir::Asc))
+                .await?;
         let page3 =
-            get_paginated_sorted_transactions(&pool, &3, &2, &sort_col, &Some(SortDir::Asc)).await?;
+            get_paginated_sorted_transactions(&pool, &3, &2, &sort_col, &Some(SortDir::Asc))
+                .await?;
 
         assert_eq!(ids(&page1), vec![2, 1]);
         assert_eq!(ids(&page2), vec![3, 4]);
@@ -687,7 +687,7 @@ mod tests {
             .expect("transaction should exist")
     }
 
-        #[sqlx::test(fixtures(path = "../fixtures", scripts("transactions")))]
+    #[sqlx::test(fixtures(path = "../fixtures", scripts("transactions")))]
     async fn update_reassigns_and_overwrites_category(
         pool: Pool<Sqlite>,
     ) -> Result<(), Box<dyn std::error::Error>> {
@@ -731,7 +731,10 @@ mod tests {
         );
 
         // The rejected update must leave the transaction's category unchanged.
-        assert_eq!(category_of(&all_transactions(&pool).await?, 1), "Uncategorized");
+        assert_eq!(
+            category_of(&all_transactions(&pool).await?, 1),
+            "Uncategorized"
+        );
         Ok(())
     }
 
@@ -778,9 +781,11 @@ mod tests {
         pool: Pool<Sqlite>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         // A saved rule maps "Coffee" -> Groceries (category 4).
-        sqlx::query("INSERT INTO transaction_category_rule (name, category_id) VALUES ('Coffee', 4)")
-            .execute(&pool)
-            .await?;
+        sqlx::query(
+            "INSERT INTO transaction_category_rule (name, category_id) VALUES ('Coffee', 4)",
+        )
+        .execute(&pool)
+        .await?;
         let rules = get_category_rules(&pool).await?;
 
         let mut conn = pool.acquire().await?;

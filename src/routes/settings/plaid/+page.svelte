@@ -2,7 +2,11 @@
   import { plaidApi } from "$lib/api/plaid";
   import Button from "$lib/components/Button.svelte";
   import TextInput from "$lib/components/TextInput.svelte";
-  import { GITHUB_REPO_URL, openExternal, PLAID_TRIAL_URL } from "$lib/utils/externalLinks";
+  import {
+    GITHUB_REPO_URL,
+    openExternal,
+    PLAID_TRIAL_URL,
+  } from "$lib/utils/externalLinks";
 
   type Status = { kind: "idle" | "saved" | "error"; message?: string };
 
@@ -46,31 +50,34 @@
   <h2 class="h2">Plaid Credentials</h2>
   <div class="description">
     <p class="paragraph">
-      For the current beta, the only way to add transactions is by syncing
-      thru Plaid. Pennyful's Plaid integration can be offered for free
-      through a bring-your-own-key model.
+      For the current beta, the only way to add transactions is by syncing thru
+      Plaid. Pennyful's Plaid integration can be offered for free through a
+      bring-your-own-key model.
     </p>
     <p class="paragraph">
       Plaid offers a <a
         class="link"
         href={PLAID_TRIAL_URL}
         onclick={openExternal(PLAID_TRIAL_URL)}>trial plan</a
-      > which allows users to connect 10 free financial institutions for free.
-      This should be enough for most users, however, if you have issues with the
-      trial plan, please open up an issue on the <a
+      >
+      which allows users to connect 10 free financial institutions for free. This
+      should be enough for most users, however, if you have issues with the trial
+      plan, please open up an issue on the
+      <a
         class="link"
         href={GITHUB_REPO_URL}
         onclick={openExternal(GITHUB_REPO_URL)}>GitHub repo</a
-      >. You can sign up for the trial plan <a
+      >. You can sign up for the trial plan
+      <a
         class="link"
         href={PLAID_TRIAL_URL}
         onclick={openExternal(PLAID_TRIAL_URL)}>here</a
       >.
     </p>
     <p class="paragraph">
-      Update your Plaid <strong>client_id</strong> and <strong>secret</strong>. Each
-      can be saved independently. New values replace the ones stored securely on your
-      device's credentials manager.
+      Update your Plaid <strong>client_id</strong> and <strong>secret</strong>.
+      Each can be saved independently. New values replace the ones stored
+      securely on your device's credentials manager.
     </p>
   </div>
 
@@ -78,7 +85,11 @@
     <div class="field">
       <label class="paragraph field-label" for="client_id">client_id:</label>
       <div class="field-input">
-        <TextInput id="client_id" bind:value={clientId} placeholder="Enter new client_id" />
+        <TextInput
+          id="client_id"
+          bind:value={clientId}
+          placeholder="Enter new client_id"
+        />
       </div>
       <Button onclick={saveClientId} disabled={!canSaveClientId}>Save</Button>
       {#if clientIdStatus.kind === "saved"}
@@ -108,10 +119,10 @@
   </div>
 
   <p class="paragraph step-note">
-    Note: Since Pennyful stores credentials securely on your device's keychain, your
-    device may prompt you for the device password whenever Pennyful tries to use these
-    credentials. We recommend selecting "Always Allow" when your device prompts you for
-    the password.
+    Note: Since Pennyful stores credentials securely on your device's keychain,
+    your device may prompt you for the device password whenever Pennyful tries
+    to use these credentials. We recommend selecting "Always Allow" when your
+    device prompts you for the password.
   </p>
 </main>
 

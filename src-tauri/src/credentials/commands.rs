@@ -53,9 +53,6 @@ pub async fn save_plaid_client_id(
 }
 
 #[tauri::command]
-pub async fn save_plaid_secret(
-    app_handle: tauri::AppHandle,
-    secret: String,
-) -> Result<(), String> {
+pub async fn save_plaid_secret(app_handle: tauri::AppHandle, secret: String) -> Result<(), String> {
     set_secret(&app_handle, &secret)
 }

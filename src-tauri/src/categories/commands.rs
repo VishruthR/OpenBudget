@@ -71,10 +71,7 @@ pub async fn update_category(
 }
 
 #[tauri::command]
-pub async fn delete_category(
-    state: tauri::State<'_, AppState>,
-    id: i64,
-) -> Result<(), String> {
+pub async fn delete_category(state: tauri::State<'_, AppState>, id: i64) -> Result<(), String> {
     queries::delete_category(&state.db.0, id)
         .await
         .map_err(|e| e.to_string())
