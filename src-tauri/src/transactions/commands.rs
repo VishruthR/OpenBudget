@@ -1,8 +1,10 @@
 use chrono::NaiveDate;
 
-use crate::transactions::queries::{get_total_income_by_date_range, get_total_spending_by_date_range};
+use crate::transactions::queries::{
+    get_total_income_by_date_range, get_total_spending_by_date_range,
+};
 use crate::types::{Cents, SortDir, TransactionWithAccount};
-use crate::{AppState, categories, transactions};
+use crate::{categories, transactions, AppState};
 
 #[derive(serde::Serialize)]
 pub struct PaginatedSortedTransactionsResponse {

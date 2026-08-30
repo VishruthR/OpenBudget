@@ -1,5 +1,5 @@
 <script lang="ts">
-    import MonthByMonthSpendingChart from "$lib/components/MonthByMonthSpendingChart.svelte";
+  import MonthByMonthSpendingChart from "$lib/components/MonthByMonthSpendingChart.svelte";
   import TransactionsTable from "$lib/components/TransactionsTable.svelte";
 </script>
 

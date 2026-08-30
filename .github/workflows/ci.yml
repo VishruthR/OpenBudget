@@ -8,6 +8,10 @@ jobs:
       - name: checkout code
         uses: actions/checkout@v4
 
+      - name: install
+        runs: |
+          npm i
+
       - name: run formatter
         run: |
           npm run format
@@ -33,6 +37,10 @@ jobs:
     steps:
       - name: checkout code
         uses: actions/checkout@v4
+
+      - name: build
+        runs: |
+          cargo build
 
       - name: run formatter
         run: |

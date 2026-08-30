@@ -13,7 +13,7 @@
   import CategoryPill from "$lib/components/CategoryPill.svelte";
   import BudgetInput from "$lib/components/BudgetInput.svelte";
   import { formatCentsAsDollars } from "$lib/utils/format";
-    import { SPECIAL_CATEGORIES } from "$lib/utils/constants";
+  import { SPECIAL_CATEGORIES } from "$lib/utils/constants";
 
   interface Props {
     categories: CategoryOverview[];

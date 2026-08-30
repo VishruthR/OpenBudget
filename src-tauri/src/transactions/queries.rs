@@ -1,14 +1,14 @@
-use crate::{plaid::types::PlaidTransaction, types::SortDir};
 use crate::types::{Cents, TransactionWithAccount};
-use chrono::NaiveDate;
+use crate::{plaid::types::PlaidTransaction, types::SortDir};
 use ::plaid::model::RemovedTransaction;
+use chrono::NaiveDate;
 use sqlx::{Pool, QueryBuilder, Sqlite, SqliteConnection};
 use std::collections::HashMap;
 
 pub async fn get_total_income_by_date_range(
     pool: &Pool<Sqlite>,
     start_date: NaiveDate,
-    end_date: NaiveDate
+    end_date: NaiveDate,
 ) -> Result<Cents, sqlx::Error> {
     let query = r#"
         SELECT
@@ -32,7 +32,7 @@ pub async fn get_total_income_by_date_range(
 pub async fn get_total_spending_by_date_range(
     pool: &Pool<Sqlite>,
     start_date: NaiveDate,
-    end_date: NaiveDate
+    end_date: NaiveDate,
 ) -> Result<Cents, sqlx::Error> {
     let query = r#"
         SELECT
@@ -365,8 +365,14 @@ mod tests {
     async fn all_transactions(
         pool: &Pool<Sqlite>,
     ) -> Result<Vec<TransactionWithAccount>, sqlx::Error> {
-        get_paginated_sorted_transactions(pool, &1, &10, &Some("name".to_owned()), &Some(SortDir::Asc))
-            .await
+        get_paginated_sorted_transactions(
+            pool,
+            &1,
+            &10,
+            &Some("name".to_owned()),
+            &Some(SortDir::Asc),
+        )
+        .await
     }
 
     fn plaid_txn(
@@ -395,13 +401,11 @@ mod tests {
         // With no `Income` transactions, we should see 0
         let start_date = NaiveDate::parse_from_str("2025-12-01", "%Y-%m-%d")?;
         let end_date = NaiveDate::parse_from_str("2025-12-31", "%Y-%m-%d")?;
-        let income = get_total_income_by_date_range(&pool, start_date, end_date)
-            .await?;
+        let income = get_total_income_by_date_range(&pool, start_date, end_date).await?;
         assert_eq!(income, Cents::from_dollars_f64(0_f64).unwrap());
-        
+
         update_transaction_category(&pool, 1, 2, 1).await?;
-        let income = get_total_income_by_date_range(&pool, start_date, end_date)
-            .await?;
+        let income = get_total_income_by_date_range(&pool, start_date, end_date).await?;
         assert_eq!(income, Cents::from_dollars_f64(-5.77_f64).unwrap());
 
         Ok(())
@@ -414,14 +418,12 @@ mod tests {
         // No transactions in date range should return 0
         let start_date = NaiveDate::parse_from_str("2026-12-01", "%Y-%m-%d")?;
         let end_date = NaiveDate::parse_from_str("2026-12-31", "%Y-%m-%d")?;
-        let income = get_total_spending_by_date_range(&pool, start_date, end_date)
-            .await?;
+        let income = get_total_spending_by_date_range(&pool, start_date, end_date).await?;
         assert_eq!(income, Cents::from_dollars_f64(0_f64).unwrap());
-        
+
         let start_date = NaiveDate::parse_from_str("2025-12-01", "%Y-%m-%d")?;
         let end_date = NaiveDate::parse_from_str("2025-12-31", "%Y-%m-%d")?;
-        let income = get_total_spending_by_date_range(&pool, start_date, end_date)
-            .await?;
+        let income = get_total_spending_by_date_range(&pool, start_date, end_date).await?;
         assert_eq!(income, Cents::from_dollars_f64(-19.27_f64).unwrap());
 
         Ok(())
