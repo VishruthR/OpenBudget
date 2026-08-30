@@ -42,6 +42,15 @@ jobs:
         run: |
           sudo apt-get install libglib2.0-dev libgtk-3-dev libwebkit2gtk-4.1-dev
 
+      - name: create .env
+        run: |
+          echo "PLAID_CLIENT_ID=placeholder" >> .env
+          echo "PLAID_SECRET=placeholder" >> .env
+          echo "PLAID_VERSION=placeholder" >> .env
+          echo "PLAID_ENV=placeholder" >> .env
+          echo "PLAID_PRODUCTS=placeholder" >> .env
+          echo "PLAID_COUNTRY_CODES=placeholder" >> .env
+
       - name: build
         run: |
           cargo build
