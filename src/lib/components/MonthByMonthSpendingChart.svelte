@@ -17,7 +17,7 @@
 
   // We represent months by the 1st of each month. The date carries no semantic meaning in this component.
   const today = new Date();
-  const lastTwelveMonths = [...Array(11).keys()].map((offset) => new Date(today.getFullYear(), today.getMonth() - offset, 1));
+  const lastTwelveMonths = [...Array(13).keys()].map((offset) => new Date(today.getFullYear(), today.getMonth() - offset, 1));
 
   const loadMonthlyStats = async () => {
     const promises = lastTwelveMonths.map((month) => {
@@ -73,7 +73,7 @@
 </script>
 
 <div class="container">
-  <Plot grid subtitle="Month-by-month spending" height={320} marginTop={10} >
+  <Plot grid subtitle="Month-by-month spending" height={320} marginTop={10} x={{ insetRight: 10 }} y={{ insetTop: 10, insetBottom: 10 }}>
     <Line data={monthlyStatsRecord} x="date" y="income" stroke="#378727" strokeWidth={2} marker="circle-stroke" markerScale={0.75} />
     <Line data={monthlyStatsRecord} x="date" y="spending" stroke="#DC1716" strokeWidth={2} marker="circle-stroke" markerScale={0.75} />
     <AxisX
@@ -81,7 +81,6 @@
         data={monthTimestamps}
         tickFontSize={9} 
         tickSize={0}
-        tickPadding={10}
         tickFormat={(d) => formatDate(new Date(d as number))} 
     />
     <AxisY
@@ -138,7 +137,7 @@
     width: 700px;
     border: 2px solid var(--grey-500);
     border-radius: 8px;
-    padding: 10px;
+    padding: 0px 10px 10px 10px;
   }
 
   .tooltip {

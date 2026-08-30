@@ -56,8 +56,6 @@ pub async fn get_spending_and_income_by_date_range(
 ) -> Result<(Cents, Cents), String> {
     let db = &state.db;
 
-    println!("{} to {}", start_date, end_date);
-
     let income = get_total_income_by_date_range(&db.0, start_date, end_date)
         .await
         .map_err(|e| format!("Error fetching monthly income: {e}"))?;
