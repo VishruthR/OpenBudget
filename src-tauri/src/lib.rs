@@ -77,7 +77,7 @@ pub fn run() {
                 .path()
                 .app_data_dir()
                 .expect("Could not find applications data directory");
-            
+
             /* Initialize persistent store */
             let _store = app.store("store.json")?;
 

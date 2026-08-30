@@ -8,7 +8,7 @@
 -->
 
 <script lang="ts">
-  import Icon from '@iconify/svelte';
+  import Icon from "@iconify/svelte";
 
   interface Props {
     /** DOM element of the label wrapper — the library toggles the popup off this */
@@ -20,10 +20,16 @@
     /** input name, for native form submission */
     name?: string | undefined;
     /** directionality */
-    dir: 'ltr' | 'rtl';
+    dir: "ltr" | "rtl";
   }
 
-  let { labelElement = $bindable(), hex, label, name = undefined, dir }: Props = $props();
+  let {
+    labelElement = $bindable(),
+    hex,
+    label,
+    name = undefined,
+    dir,
+  }: Props = $props();
 
   // Prevent the native browser color picker from opening; the library popup handles it.
   function preventDefault(e: MouseEvent) {

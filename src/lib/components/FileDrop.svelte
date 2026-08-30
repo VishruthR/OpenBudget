@@ -14,23 +14,21 @@
     filterName?: string;
   }
 
-  let { 
-    onSelect, 
-    acceptedTypes, 
+  let {
+    onSelect,
+    acceptedTypes,
     multiple = false,
-    filterName = "Files"
+    filterName = "Files",
   }: Props = $props();
 
   let selectedPaths = $state<string[]>([]);
 
   const displayFormats = $derived(
-    acceptedTypes.map(t => t.replace('.', '')).join(', ')
+    acceptedTypes.map((t) => t.replace(".", "")).join(", "),
   );
 
   // Convert acceptedTypes like [".csv", ".txt"] to extensions ["csv", "txt"]
-  const extensions = $derived(
-    acceptedTypes.map(t => t.replace('.', ''))
-  );
+  const extensions = $derived(acceptedTypes.map((t) => t.replace(".", "")));
 
   async function openFilePicker() {
     const result = await open({
@@ -41,17 +39,17 @@
     if (!result) {
       return;
     }
-    
+
     if (multiple && Array.isArray(result)) {
       selectedPaths = result;
-    } else if (typeof result === 'string') {
+    } else if (typeof result === "string") {
       selectedPaths = [result];
     }
     onSelect(selectedPaths);
   }
 
   function getFileName(path: string): string {
-    return path.split('/').pop() || path;
+    return path.split("/").pop() || path;
   }
 
   function removeFile(index: number) {
@@ -70,9 +68,14 @@
   </button>
 {:else}
   <div class="file-zone files-zone">
-    {#each selectedPaths as filePath, index}
+    {#each selectedPaths as filePath, index (filePath)}
       <div class="file-item">
-        <Icon icon="mdi:file-outline" width={24} height={24} class="file-icon" />
+        <Icon
+          icon="mdi:file-outline"
+          width={24}
+          height={24}
+          class="file-icon"
+        />
         <div class="file-info">
           <span class="file-name paragraph">{getFileName(filePath)}</span>
           <span class="file-path">{filePath}</span>
@@ -102,7 +105,9 @@
     border: 2px dashed var(--grey-200);
     border-radius: 16px;
     background-color: var(--pure-white);
-    transition: border-color 0.15s ease, background-color 0.15s ease;
+    transition:
+      border-color 0.15s ease,
+      background-color 0.15s ease;
   }
 
   /* Drop zone specific styles */

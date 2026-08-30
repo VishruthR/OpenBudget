@@ -3,7 +3,12 @@
   import { plaidApi } from "$lib/api/plaid";
   import Button from "$lib/components/Button.svelte";
   import TextInput from "$lib/components/TextInput.svelte";
-    import { GITHUB_REPO_URL, openExternal, PLAID_TRIAL_URL, PLAID_URL } from "$lib/utils/externalLinks";
+  import {
+    GITHUB_REPO_URL,
+    openExternal,
+    PLAID_TRIAL_URL,
+    PLAID_URL,
+  } from "$lib/utils/externalLinks";
   import { load } from "@tauri-apps/plugin-store";
 
   const USERNAME_MAX_LENGTH = 80;
@@ -15,10 +20,10 @@
   let submittedUsername = $state<string | null>(null);
 
   const canSubmit = $derived(
-    username.trim().length > 0 && username !== submittedUsername
+    username.trim().length > 0 && username !== submittedUsername,
   );
   const canProceed = $derived(
-    username.trim().length > 0 && username === submittedUsername
+    username.trim().length > 0 && username === submittedUsername,
   );
 
   const submitUsername = async () => {
@@ -45,7 +50,7 @@
   let secret = $state("");
 
   const canProceedPlaidInfo = $derived(
-    clientId.length > 0 && secret.length > 0
+    clientId.length > 0 && secret.length > 0,
   );
 
   const onNext = async () => {
@@ -123,13 +128,16 @@
             class="link"
             href={PLAID_TRIAL_URL}
             onclick={openExternal(PLAID_TRIAL_URL)}>trial plan</a
-          > which allows users to connect 10 free financial institutions for free.
-          This should be enough for most users, however, if you have issues with the
-          trial plan, please open up an issue on the <a
+          >
+          which allows users to connect 10 free financial institutions for free. This
+          should be enough for most users, however, if you have issues with the trial
+          plan, please open up an issue on the
+          <a
             class="link"
             href={GITHUB_REPO_URL}
             onclick={openExternal(GITHUB_REPO_URL)}>GitHub repo</a
-          >. You can sign up for the trial plan <a
+          >. You can sign up for the trial plan
+          <a
             class="link"
             href={PLAID_TRIAL_URL}
             onclick={openExternal(PLAID_TRIAL_URL)}>here</a
@@ -146,22 +154,34 @@
 
       <div class="fields">
         <div class="field">
-          <label class="paragraph field-label" for="client_id">client_id:</label>
+          <label class="paragraph field-label" for="client_id">client_id:</label
+          >
           <div class="field-input">
-            <TextInput id="client_id" bind:value={clientId} placeholder="Input w/ Text" />
+            <TextInput
+              id="client_id"
+              bind:value={clientId}
+              placeholder="Input w/ Text"
+            />
           </div>
         </div>
         <div class="field">
           <label class="paragraph field-label" for="secret">secret:</label>
           <div class="field-input">
-            <TextInput id="secret" bind:value={secret} placeholder="Input w/ Text" />
+            <TextInput
+              id="secret"
+              bind:value={secret}
+              placeholder="Input w/ Text"
+            />
           </div>
         </div>
       </div>
 
       <div class="body">
         <p class="paragraph step-note">
-          Note: Since Pennyful stores credentials securely on your device's keychain, your device may prompt you for the device password whenever Pennyful tries to use these credentials. We recommend selecting "Always Allow" when your device prompts you for the password.
+          Note: Since Pennyful stores credentials securely on your device's
+          keychain, your device may prompt you for the device password whenever
+          Pennyful tries to use these credentials. We recommend selecting
+          "Always Allow" when your device prompts you for the password.
         </p>
       </div>
     {/if}

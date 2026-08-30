@@ -17,7 +17,16 @@
     selected?: boolean;
     onClick: () => void;
   }
-  let { icon, name, accountType, subname, balance, disabled = false, selected = false, onClick }: Props = $props();
+  let {
+    icon,
+    name,
+    accountType,
+    subname,
+    balance,
+    disabled = false,
+    selected = false,
+    onClick,
+  }: Props = $props();
 
   const handleClick = () => {
     if (disabled) {
@@ -25,12 +34,17 @@
     }
 
     onClick();
-  }
+  };
 
   const isNegative = $derived(balance < 0);
 </script>
 
-<button class="bank-account-card" class:disabled class:selected onclick={handleClick}>
+<button
+  class="bank-account-card"
+  class:disabled
+  class:selected
+  onclick={handleClick}
+>
   <div class="card-header">
     <Icon {icon} width={24} height={24} />
     <span class="account-name h3">{name}</span>
@@ -40,7 +54,9 @@
   </div>
   <div class="balance-row paragraph">
     <span class="balance-label">Balance:</span>
-    <span class="balance-amount" class:negative={isNegative}>{formatSignedCurrencyAmount(balance)}</span>
+    <span class="balance-amount" class:negative={isNegative}
+      >{formatSignedCurrencyAmount(balance)}</span
+    >
   </div>
 </button>
 
@@ -61,7 +77,8 @@
     font-family: inherit;
   }
 
-  .bank-account-card:hover, .selected {
+  .bank-account-card:hover,
+  .selected {
     background-color: var(--blue-50);
   }
 

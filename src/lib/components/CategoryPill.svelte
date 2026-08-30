@@ -12,10 +12,19 @@
     textColor: string;
   }
 
-  let { name, icon, color = "transparent", textColor = 'inherit' }: Props = $props();
+  let {
+    name,
+    icon,
+    color = "transparent",
+    textColor = "inherit",
+  }: Props = $props();
 </script>
 
-<span class="category-pill" style:background-color={color} style:color={textColor}>
+<span
+  class="category-pill"
+  style:background-color={color}
+  style:color={textColor}
+>
   <span class="pill-content">
     {#if icon}
       <Icon {icon} width={20} height={20} />

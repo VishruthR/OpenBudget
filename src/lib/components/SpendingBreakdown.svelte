@@ -29,7 +29,7 @@
 
   const fetchCategoryDetails = async () => {
     return categoriesApi.getCategoryDetails();
-  }
+  };
 </script>
 
 <div class="spending-breakdown">

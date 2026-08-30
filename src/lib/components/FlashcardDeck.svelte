@@ -49,13 +49,13 @@
 
   let {
     transactions,
-    index = $bindable(0), 
+    index = $bindable(0),
     isAnimating = $bindable(false),
     card,
     nextButton,
     backButton,
   }: Props = $props();
- 
+
   interface Animation {
     card: Snippet<[TransactionWithAccount]>;
     transaction: TransactionWithAccount | null;
@@ -63,10 +63,10 @@
     mode: "out" | "in";
   }
   let animationParams = $state<Animation | null>(null);
-  
+
   let totalCards = $derived(transactions.length);
   let currentTransaction = $derived(
-    index < totalCards ? transactions[index] : null
+    index < totalCards ? transactions[index] : null,
   );
   let isComplete = $derived(index >= totalCards);
 
@@ -81,9 +81,11 @@
 
   const getDirectionByIndex = (idx: number): "right" | "left" => {
     return idx % 2 == 0 ? "right" : "left";
-  }
+  };
   export const next = (dir: "auto" | "left" | "right" = "auto") => {
-    if (index >= transactions.length) { return; }
+    if (index >= transactions.length) {
+      return;
+    }
     isAnimating = true;
 
     if (dir === "auto") {
@@ -93,13 +95,15 @@
       card: card,
       transaction: currentTransaction,
       direction: dir,
-      mode: "out"
-    }
+      mode: "out",
+    };
 
     index++;
-  }
+  };
   export const back = (dir: "auto" | "left" | "right" = "auto") => {
-    if (index == 0) { return; }
+    if (index == 0) {
+      return;
+    }
     isAnimating = true;
     index--;
 
@@ -110,14 +114,14 @@
       card: card,
       transaction: currentTransaction,
       direction: dir,
-      mode: "in"
-    }
-  }
+      mode: "in",
+    };
+  };
 
   const handleAnimationEnd = () => {
     isAnimating = false;
     animationParams = null;
-  }
+  };
 </script>
 
 <div class="flashcard-deck">
@@ -125,10 +129,14 @@
     {#if animationParams !== null && animationParams.transaction !== null}
       <div
         class="card-wrapper"
-        class:throw-left={animationParams.direction === "left" && animationParams.mode === "out"}
-        class:throw-right={animationParams.direction === "right" && animationParams.mode === "out"}
-        class:recover-left={animationParams.direction === "left" && animationParams.mode === "in"}
-        class:recover-right={animationParams.direction === "right" && animationParams.mode === "in"}
+        class:throw-left={animationParams.direction === "left" &&
+          animationParams.mode === "out"}
+        class:throw-right={animationParams.direction === "right" &&
+          animationParams.mode === "out"}
+        class:recover-left={animationParams.direction === "left" &&
+          animationParams.mode === "in"}
+        class:recover-right={animationParams.direction === "right" &&
+          animationParams.mode === "in"}
         onanimationend={handleAnimationEnd}
       >
         {@render animationParams.card(animationParams.transaction)}
@@ -144,14 +152,13 @@
         >
           {@render card(visibleCard)}
         </div>
-        
       {/each}
     {/if}
   </div>
 
   <div class="controls">
     {@render backButton()}
-    
+
     <span class="counter">
       {isComplete ? totalCards : index + 1}/{totalCards}
     </span>
@@ -248,7 +255,7 @@
     animation: throw-right 0.35s ease-out forwards;
     z-index: 10;
   }
-  
+
   /* Recover animations */
   @keyframes recover-left {
     0% {

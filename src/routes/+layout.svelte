@@ -1,5 +1,5 @@
 <script lang="ts">
-  import '../app.css';
+  import "../app.css";
   import { page } from "$app/state";
   import Sidebar from "$lib/components/Sidebar.svelte";
   import TitleBar from "$lib/components/TitleBar.svelte";
@@ -19,7 +19,7 @@
   const CHROMELESS_ROUTES = ["/onboarding"];
 
   const showChrome = $derived(
-    !CHROMELESS_ROUTES.some((prefix) => page.url.pathname.startsWith(prefix))
+    !CHROMELESS_ROUTES.some((prefix) => page.url.pathname.startsWith(prefix)),
   );
   const title = $derived(PAGE_TITLES[page.url.pathname] ?? "");
 </script>

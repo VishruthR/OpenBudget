@@ -1,32 +1,32 @@
-import type { Snippet } from 'svelte';
+import type { Snippet } from "svelte";
 
 interface Category {
-    id: number,
-    name: string,
-    color: string,
-    icon?: string
+  id: number;
+  name: string;
+  color: string;
+  icon?: string;
 }
-type CategoryDetails =  Record<string, Category>;
+type CategoryDetails = Record<string, Category>;
 
 interface CategoryOverview {
-    id: number;
-    name: string;
-    color: string;
-    icon?: string;
-    budget_cents: number | null;
-    spent_cents: number;
+  id: number;
+  name: string;
+  color: string;
+  icon?: string;
+  budget_cents: number | null;
+  spent_cents: number;
 }
 
 interface Transaction {
-    id: number;
-    name: string;
-    amount: number;
-    // Rust backend treats Date as day, Date class in JS represents an instant
-    // To avoid mismatches, we just treat it as a string
-    // Expect dates in YYYY-MM-DD format
-    date: string;
-    account_id: number;
-    category_id: number;
+  id: number;
+  name: string;
+  amount: number;
+  // Rust backend treats Date as day, Date class in JS represents an instant
+  // To avoid mismatches, we just treat it as a string
+  // Expect dates in YYYY-MM-DD format
+  date: string;
+  account_id: number;
+  category_id: number;
 }
 
 interface TransactionWithAccount {
@@ -89,27 +89,43 @@ interface LinkedInstitution {
 }
 
 enum AccountType {
-    Savings = "Savings",
-    Checkings = "Checkings",
-    Credit = "Credit"
+  Savings = "Savings",
+  Checkings = "Checkings",
+  Credit = "Credit",
 }
 
 interface Account {
-    id: number;
-    plaid_account_id: string | null;
-    name: string;
-    official_name: string | null;
-    bank_id: number;
-    bank_name: string;
-    account_type: AccountType;
-    initial_balance: number;
-    available_balance: number;
-    current_balance: number;
+  id: number;
+  plaid_account_id: string | null;
+  name: string;
+  official_name: string | null;
+  bank_id: number;
+  bank_name: string;
+  account_type: AccountType;
+  initial_balance: number;
+  available_balance: number;
+  current_balance: number;
 }
 
 interface DropdownOption {
-    value: string;
-    content?: Snippet;
+  value: string;
+  content?: Snippet;
 }
 
-export type { Category, CategoryDetails, CategoryOverview, MonthlyAmount, Transaction, TransactionWithoutId, AccountType, Account, DropdownOption, PlaidAccount, PlaidItem, AccountsGetResponse, LinkedInstitution, TransactionWithAccount, PaginedSortedTransactionsResponse, FlashcardTransaction };
+export type {
+  Category,
+  CategoryDetails,
+  CategoryOverview,
+  Transaction,
+  TransactionWithoutId,
+  AccountType,
+  Account,
+  DropdownOption,
+  PlaidAccount,
+  PlaidItem,
+  AccountsGetResponse,
+  LinkedInstitution,
+  TransactionWithAccount,
+  PaginedSortedTransactionsResponse,
+  FlashcardTransaction,
+};

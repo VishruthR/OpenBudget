@@ -9,7 +9,10 @@
   import { onMount } from "svelte";
   import { page } from "$app/state";
   import { browser } from "$app/environment";
-  import { triageStore, loadUncategorizedCount } from "$lib/stores/triage.svelte";
+  import {
+    triageStore,
+    loadUncategorizedCount,
+  } from "$lib/stores/triage.svelte";
 
   interface NavItem {
     label: string;
@@ -34,7 +37,7 @@
 
   // browser tells us if the code is running in a browser. All localStorage uses must be gated by first checking browser
   let collapsed = $state(
-    browser && localStorage.getItem(STORAGE_KEY) === "true"
+    browser && localStorage.getItem(STORAGE_KEY) === "true",
   );
 
   $effect(() => {
@@ -70,7 +73,7 @@
   </div>
 
   <nav class="nav">
-    {#each navItems as item}
+    {#each navItems as item (item.label)}
       <a
         class="nav-item paragraph"
         class:active={isActive(item.href)}
@@ -147,7 +150,9 @@
     border-radius: 8px;
     color: var(--grey-300);
     cursor: pointer;
-    transition: background-color 0.15s ease, color 0.15s ease;
+    transition:
+      background-color 0.15s ease,
+      color 0.15s ease;
   }
 
   .collapse-toggle:hover {

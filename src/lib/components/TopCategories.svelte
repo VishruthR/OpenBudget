@@ -26,11 +26,7 @@
     onSeeAll?: () => void;
   }
 
-  let {
-    categories,
-    title = "Top categories",
-    onSeeAll,
-  }: Props = $props();
+  let { categories, title = "Top categories", onSeeAll }: Props = $props();
 
   function formatAmount(amount: number): string {
     return `$${amount.toLocaleString()}`;
@@ -53,13 +49,17 @@
   <header class="header">
     <h2 class="title h3">{title}</h2>
     <button class="see-all" onclick={onSeeAll}>
-      see all categories <Icon icon="stash:chevron-right" width={16} height={16} />
+      see all categories <Icon
+        icon="stash:chevron-right"
+        width={16}
+        height={16}
+      />
     </button>
   </header>
 
   <div class="category-grid">
     <div class="column-labels">
-      {#each categories as category}
+      {#each categories as category (category.name)}
         <div class="category-label">
           <div class="category-icon">
             <Icon icon={category.icon} width={20} height={20} />
@@ -70,7 +70,7 @@
     </div>
 
     <div class="column-progress">
-      {#each categories as category}
+      {#each categories as category (category.name)}
         <div class="progress-bar-container">
           <div class="progress-bar">
             <div
@@ -84,7 +84,7 @@
     </div>
 
     <div class="column-amounts">
-      {#each categories as category}
+      {#each categories as category (category.name)}
         <span class="category-amount paragraph">
           {#if category.budget}
             {formatAmount(category.spending)} / {formatAmount(category.budget)}

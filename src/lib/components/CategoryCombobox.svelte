@@ -17,7 +17,9 @@
   let { categories, value, onSelect }: Props = $props();
 
   // bits-ui Combobox only works with Strings
-  const options = $derived<DropdownOption[]>(categories.map((c) => ({ value: String(c.id) })));
+  const options = $derived<DropdownOption[]>(
+    categories.map((c) => ({ value: String(c.id) })),
+  );
   const byId = $derived(new Map(categories.map((c) => [String(c.id), c])));
 </script>
 

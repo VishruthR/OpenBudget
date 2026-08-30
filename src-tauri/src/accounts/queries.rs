@@ -237,10 +237,12 @@ mod tests {
         .execute(pool)
         .await
         .expect("seed plaid_item");
-        sqlx::query("INSERT INTO bank (id, plaid_item_id, bank_name) VALUES (1, 'item-1', 'Test Bank')")
-            .execute(pool)
-            .await
-            .expect("seed bank");
+        sqlx::query(
+            "INSERT INTO bank (id, plaid_item_id, bank_name) VALUES (1, 'item-1', 'Test Bank')",
+        )
+        .execute(pool)
+        .await
+        .expect("seed bank");
         Bank::new(1, Some("item-1".to_owned()), None, "Test Bank".to_owned())
     }
 

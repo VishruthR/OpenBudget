@@ -12,14 +12,14 @@
   let isAnimating = $state(false);
   let deck = $state<ReturnType<typeof FlashcardDeck>>();
   let isReviewComplete = $state(false);
-  
+
   let transactions = $state<TransactionWithAccount[]>([]);
   async function loadTransactions() {
-    transactions = await transactionsApi.getTransactionsByCategory("Uncategorized");
+    transactions =
+      await transactionsApi.getTransactionsByCategory("Uncategorized");
     await loadUncategorizedCount();
   }
   onMount(loadTransactions);
-  $inspect(transactions);
 
   let categories = $state<CategoryOverview[]>([]);
   let loadingCategories = $state<boolean>(false);
@@ -31,10 +31,11 @@
   onMount(loadCategories);
 
   const handleCategoryUpdate = (transactionId: number, categoryId: number) => {
-    transactionsApi.updateTransactionCategory(transactionId, categoryId)
+    transactionsApi
+      .updateTransactionCategory(transactionId, categoryId)
       .then(() => loadUncategorizedCount());
     handleNext();
-  }
+  };
 
   const handleNext = () => {
     if (deck) {
@@ -44,26 +45,26 @@
     if (index >= transactions.length) {
       handleReviewComplete();
     }
-  }
+  };
 
   const handleBack = () => {
     if (deck) {
       deck.back();
     }
-  }
+  };
 
   const handleReviewComplete = () => {
     isReviewComplete = true;
-  }
+  };
 
   const getEmptyText = () => {
     if (transactions.length === 0) {
-      return "All your transactions are categorized. Way to keep your ducks in a row!"
+      return "All your transactions are categorized. Way to keep your ducks in a row!";
     }
     if (isReviewComplete) {
-      return "You're done!"
+      return "You're done!";
     }
-  }
+  };
 </script>
 
 {#snippet nextButton()}
@@ -76,21 +77,14 @@
 {/snippet}
 
 {#snippet backButton()}
-  <Button
-    onclick={handleBack}
-    disabled={isAnimating || index == 0}
-  >
+  <Button onclick={handleBack} disabled={isAnimating || index == 0}>
     Back
   </Button>
 {/snippet}
 
 {#snippet card(transaction: TransactionWithAccount)}
   {#if !loadingCategories}
-    <UncategorizedFlashcard
-      transaction={transaction}
-      categories={categories}
-      {handleCategoryUpdate}
-    />
+    <UncategorizedFlashcard {transaction} {categories} {handleCategoryUpdate} />
   {/if}
 {/snippet}
 
@@ -99,8 +93,9 @@
     <div class="page-heading">
       <h2 class="h2">Triage Transactions</h2>
       <p class="paragraph">
-        See all your <strong>Uncategorized</strong> transactions in one place and quickly categorize them.
-        Pennyful will remember your choices to save you time in the future.
+        See all your <strong>Uncategorized</strong> transactions in one place and
+        quickly categorize them. Pennyful will remember your choices to save you time
+        in the future.
       </p>
     </div>
   </header>

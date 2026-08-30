@@ -4,10 +4,14 @@
 -->
 
 <script lang="ts">
-  import { DatePicker } from 'bits-ui';
-  import { CalendarDate, today, getLocalTimeZone } from '@internationalized/date';
-  import Icon from '@iconify/svelte';
-  import type { DateValue } from '@internationalized/date';
+  import { DatePicker } from "bits-ui";
+  import {
+    CalendarDate,
+    today,
+    getLocalTimeZone,
+  } from "@internationalized/date";
+  import Icon from "@iconify/svelte";
+  import type { DateValue } from "@internationalized/date";
 
   interface Props {
     value?: Date | null;
@@ -21,7 +25,13 @@
 
   // bits-ui requires CalendarDate; we derive it from the JS Date prop inline.
   const bitsValue = $derived(
-    value ? new CalendarDate(value.getFullYear(), value.getMonth() + 1, value.getDate()) : undefined
+    value
+      ? new CalendarDate(
+          value.getFullYear(),
+          value.getMonth() + 1,
+          value.getDate(),
+        )
+      : undefined,
   );
 
   function handleValueChange(v: DateValue | undefined) {
@@ -45,8 +55,8 @@
     <DatePicker.Input {id} class="input">
       {#snippet children({ segments })}
         <div class="segments">
-          {#each segments as { part, value: segVal }}
-            {#if part === 'literal'}
+          {#each segments as { part, value: segVal } (segVal)}
+            {#if part === "literal"}
               <DatePicker.Segment {part} class="segment literal">
                 {segVal}
               </DatePicker.Segment>
@@ -77,11 +87,11 @@
             </DatePicker.NextButton>
           </DatePicker.Header>
 
-          {#each months as month}
+          {#each months as month (month.value.month)}
             <DatePicker.Grid class="cal-grid">
               <DatePicker.GridHead>
                 <DatePicker.GridRow class="cal-row">
-                  {#each weekdays as day}
+                  {#each weekdays as day (day)}
                     <DatePicker.HeadCell class="day-label">
                       {day.slice(0, 2)}
                     </DatePicker.HeadCell>
@@ -90,10 +100,14 @@
               </DatePicker.GridHead>
 
               <DatePicker.GridBody>
-                {#each month.weeks as weekDates}
+                {#each month.weeks as weekDates (weekDates)}
                   <DatePicker.GridRow class="cal-row">
-                    {#each weekDates as date}
-                      <DatePicker.Cell {date} month={month.value} class="cal-cell">
+                    {#each weekDates as date (date.day)}
+                      <DatePicker.Cell
+                        {date}
+                        month={month.value}
+                        class="cal-cell"
+                      >
                         <DatePicker.Day class="day-btn">
                           {date.day}
                         </DatePicker.Day>
@@ -295,7 +309,9 @@
     font-size: 14px;
     font-weight: 400;
     cursor: pointer;
-    transition: background-color 0.1s ease, border-color 0.1s ease;
+    transition:
+      background-color 0.1s ease,
+      border-color 0.1s ease;
   }
 
   .datepicker :global(.day-btn[data-outside-month]) {
@@ -306,7 +322,8 @@
     border-color: var(--grey-300);
   }
 
-  .datepicker :global(.day-btn:hover:not([data-selected]):not([data-disabled])) {
+  .datepicker
+    :global(.day-btn:hover:not([data-selected]):not([data-disabled])) {
     background-color: var(--grey-50);
   }
 

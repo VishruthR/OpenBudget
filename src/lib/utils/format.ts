@@ -12,7 +12,7 @@ export function formatDate(date: string): string {
 
   const month = dateParts[1];
   const year = dateParts[0];
-  const day = dateParts[2]
+  const day = dateParts[2];
   return `${month}/${day}/${year}`;
 }
 

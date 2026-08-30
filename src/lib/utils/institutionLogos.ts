@@ -1,6 +1,6 @@
 /**
  * Maps Plaid `institution_id`s (stable across all Plaid environments) to Iconify
- * icon names. 
+ * icon names.
  */
 const INSTITUTION_LOGOS: Record<string, string> = {
   ins_56: "selfhst:chase", // Chase

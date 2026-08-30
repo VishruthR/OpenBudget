@@ -8,4 +8,3 @@ export const openExternal = (url: string) => (event: MouseEvent) => {
   event.preventDefault();
   openUrl(url);
 };
-

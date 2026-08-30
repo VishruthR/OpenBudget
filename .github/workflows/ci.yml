@@ -1,0 +1,54 @@
+name: GitHub CI
+run-name: ${{ github.actor }} CI
+on: [push]
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+
+      - name: run formatter
+        run: |
+          npm run format
+
+      - name: check for formatting changes
+        run: |
+          git diff --exit-code
+
+      - name: svelte check
+        run: |
+          npm run check
+
+      - name: lint
+        run: |
+          npm run lint
+
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src-tauri
+
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+
+      -name: run formatter
+        run: |
+          cargo fmt
+
+      -name: check for formatting changes
+        run: |
+          git diff --exit-code
+
+      - name: clippy
+        run: |
+          cargo clippy
+
+      - name: test
+        run: |
+          cargo test
+
+
+

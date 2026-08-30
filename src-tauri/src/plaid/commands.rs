@@ -1,7 +1,7 @@
 use crate::accounts;
 use crate::banks;
-use crate::credentials;
 use crate::categories;
+use crate::credentials;
 use crate::plaid;
 use crate::plaid::types::PlaidTransaction;
 use crate::transactions;
@@ -26,8 +26,8 @@ fn plaid_client(app_handle: &tauri::AppHandle) -> Result<PlaidClient, String> {
     let secret = credentials::commands::get_secret(app_handle)?;
 
     let auth = PlaidAuth::ClientId {
-        client_id: client_id,
-        secret: secret,
+        client_id,
+        secret,
         version: dotenv!("PLAID_VERSION").to_string(),
     };
     Ok(PlaidClient::new(http_client, auth))
@@ -37,7 +37,7 @@ fn plaid_client(app_handle: &tauri::AppHandle) -> Result<PlaidClient, String> {
 pub async fn save_plaid_credentials(
     app_handle: tauri::AppHandle,
     client_id: String,
-    secret: String
+    secret: String,
 ) -> Result<(), String> {
     credentials::commands::set_client_id(&app_handle, &client_id)?;
     credentials::commands::set_secret(&app_handle, &secret)?;
@@ -109,9 +109,10 @@ pub async fn sync_transactions(
             .await
             .map_err(|e| format!("Failed to begin transaction: {e}"))?;
 
-    let skipped_duplicates = transactions::queries::add_plaid_transactions(&mut tx, added, *uncategorized.id(), &rules)
-        .await
-        .map_err(|e| format!("Failed to add plaid transactions: {e}"))?;
+    let skipped_duplicates =
+        transactions::queries::add_plaid_transactions(&mut tx, added, *uncategorized.id(), &rules)
+            .await
+            .map_err(|e| format!("Failed to add plaid transactions: {e}"))?;
     println!(
         "Skipped {skipped_duplicates} already-synced transactions (plaid_transaction_id conflicts)"
     );
@@ -291,8 +292,8 @@ fn extract_public_token(
 
 #[tauri::command]
 pub async fn generate_link_token(
-    app_handle: tauri::AppHandle, 
-    state: tauri::State<'_, AppState>
+    app_handle: tauri::AppHandle,
+    state: tauri::State<'_, AppState>,
 ) -> Result<String, String> {
     let client = plaid_client(&app_handle)?;
     let completion_redirect_uri = completion_redirect_uri_for(tauri::is_dev());
@@ -339,8 +340,8 @@ pub async fn generate_link_token(
 }
 
 pub async fn complete_hosted_link(
-    app_handle: &tauri::AppHandle, 
-    state: &AppState
+    app_handle: &tauri::AppHandle,
+    state: &AppState,
 ) -> Result<(String, u64), String> {
     let db = &state.db;
     let client = plaid_client(app_handle)?;
@@ -351,7 +352,7 @@ pub async fn complete_hosted_link(
     };
 
     let link_token_resp = client
-        .link_token_get(&link_token)
+        .link_token_get(link_token)
         .await
         .map_err(|e| format!("link_token_get failed: {e}"))?;
 

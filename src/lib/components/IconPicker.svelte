@@ -3,8 +3,8 @@
 -->
 
 <script lang="ts">
-  import Icon from '@iconify/svelte';
-  import 'iconify-picker';
+  import Icon from "@iconify/svelte";
+  import "iconify-picker";
 
   interface Props {
     /** selected icon color, or null when nothing is chosen yet */
@@ -15,7 +15,11 @@
     name?: string;
   }
 
-  let { iconName = $bindable(null), placeholder = 'Choose an icon', name }: Props = $props();
+  let {
+    iconName = $bindable(null),
+    placeholder = "Choose an icon",
+    name,
+  }: Props = $props();
   let dialogOpen = $state(false);
   let container: HTMLDivElement;
   let picker = $state<HTMLElement | null>(null);
@@ -23,27 +27,29 @@
   interface IconSelectedEvent {
     detail: {
       iconName: string;
-    }
-  };
+    };
+  }
   const handleIconSelected = (e: IconSelectedEvent) => {
     iconName = e.detail.iconName;
     dialogOpen = false;
-  }
+  };
 
   // iconify-picker debounces search handler where it reads `e.target.value`
   // WebKit clears `event.target` as soon as event dispatch finishes, thus
   // the search term is removed before the search handler runs.
   // This workaround manually reads the search input and sets the attribute
   $effect(() => {
-    const search = picker?.shadowRoot?.querySelector<HTMLInputElement>('.search');
+    const search =
+      picker?.shadowRoot?.querySelector<HTMLInputElement>(".search");
     if (!search) return;
     let timer: ReturnType<typeof setTimeout>;
     search.oninput = () => {
       const value = search.value;
       clearTimeout(timer);
       timer = setTimeout(() => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (picker as any).state.currentPage = 0;
-        picker!.setAttribute('search', value);
+        picker!.setAttribute("search", value);
       }, 200);
     };
     return () => clearTimeout(timer);
@@ -58,8 +64,8 @@
         dialogOpen = false;
       }
     };
-    document.addEventListener('pointerdown', handlePointerDown);
-    return () => document.removeEventListener('pointerdown', handlePointerDown);
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
   });
 </script>
 
@@ -67,7 +73,7 @@
   <button
     type="button"
     class="trigger"
-    onclick={() => dialogOpen = !dialogOpen}
+    onclick={() => (dialogOpen = !dialogOpen)}
   >
     {#if iconName === null}
       <span class="paragraph placeholder">{placeholder}</span>
@@ -80,7 +86,7 @@
   <iconify-picker
     bind:this={picker}
     class="iconpicker"
-    style:display={dialogOpen ? 'block' : 'none'}
+    style:display={dialogOpen ? "block" : "none"}
     collection="material-symbols"
     height="300px"
     hide-collection

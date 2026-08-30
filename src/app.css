@@ -1,23 +1,23 @@
 :root {
   /* Colors */
-  --bg-white: #F9F9F9;
-  --pure-white: #FFFFFF;
-  --grey-50: #EEEEEE;
-  --grey-100: #D9D9D9;
-  --grey-200: #AEAEAE;
+  --bg-white: #f9f9f9;
+  --pure-white: #ffffff;
+  --grey-50: #eeeeee;
+  --grey-100: #d9d9d9;
+  --grey-200: #aeaeae;
   --grey-300: #535353;
   --grey-500: #404040;
-  --blue-50: #E3E9F7;
-  --blue-100: #96AFEB;
+  --blue-50: #e3e9f7;
+  --blue-100: #96afeb;
   --profit-green: #378727;
   --profit-green-50: rgba(55, 135, 39, 0.5);
-  --loss-red: #DC1716;
+  --loss-red: #dc1716;
   --loss-red-50: rgba(220, 23, 22, 0.5);
   --warning-yellow: #F7B500;
   --savings-purple: #834EFF;
 
   /* Typography */
-  --font-family: 'DM Sans', sans-serif;
+  --font-family: "DM Sans", sans-serif;
 }
 
 *,
@@ -26,7 +26,8 @@
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
 }

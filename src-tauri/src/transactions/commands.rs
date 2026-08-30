@@ -20,13 +20,15 @@ pub async fn get_paginated_sorted_transactions(
     page: i64,
     page_size: i64,
     sort_col: Option<String>,
-    sort_dir: Option<SortDir>
+    sort_dir: Option<SortDir>,
 ) -> Result<PaginatedSortedTransactionsResponse, String> {
     let db = &state.db;
 
-    let res = transactions::queries::get_paginated_sorted_transactions(&db.0, &page, &page_size, &sort_col, &sort_dir)
-         .await
-         .map_err(|e| format!("Error getting paginated transactions {e}"))?;
+    let res = transactions::queries::get_paginated_sorted_transactions(
+        &db.0, &page, &page_size, &sort_col, &sort_dir,
+    )
+    .await
+    .map_err(|e| format!("Error getting paginated transactions {e}"))?;
 
     let num_transactions = transactions::queries::get_num_transactions(&db.0)
         .await
@@ -35,14 +37,18 @@ pub async fn get_paginated_sorted_transactions(
     // numbers
     let num_pages = (num_transactions + page_size - 1) / page_size;
     let prev_page: Option<i64> = if page == 1 { None } else { Some(page - 1) };
-    let next_page: Option<i64> = if page >= num_pages { None } else { Some(page + 1) };
+    let next_page: Option<i64> = if page >= num_pages {
+        None
+    } else {
+        Some(page + 1)
+    };
     let out = PaginatedSortedTransactionsResponse {
         transactions: res,
         curr_page: page,
-        next_page: next_page,
-        prev_page: prev_page,
-        num_pages: num_pages,
-        num_transactions: num_transactions
+        next_page,
+        prev_page,
+        num_pages,
+        num_transactions,
     };
 
     Ok(out)
@@ -90,7 +96,7 @@ pub async fn update_transaction_category(
 #[tauri::command]
 pub async fn get_transactions_by_category(
     state: tauri::State<'_, AppState>,
-    category_name: String
+    category_name: String,
 ) -> Result<Vec<TransactionWithAccount>, String> {
     transactions::queries::get_transactions_by_category(&state.db.0, &category_name)
         .await
@@ -100,7 +106,7 @@ pub async fn get_transactions_by_category(
 #[tauri::command]
 pub async fn get_num_transactions_by_category(
     state: tauri::State<'_, AppState>,
-    category_name: String
+    category_name: String,
 ) -> Result<i64, String> {
     transactions::queries::get_num_transactions_by_category(&state.db.0, &category_name)
         .await

@@ -25,7 +25,9 @@
   async function handleBudgetChange(categoryId: number, amountCents: number) {
     await categoriesApi.setCategoryBudget(categoryId, amountCents);
     categories = categories.map((category) =>
-      category.id === categoryId ? { ...category, budget_cents: amountCents } : category
+      category.id === categoryId
+        ? { ...category, budget_cents: amountCents }
+        : category,
     );
   }
 
@@ -52,8 +54,8 @@
     <div class="page-heading">
       <h2 class="h2">Manage Categories</h2>
       <p class="paragraph">
-        Understand your spending by category. You can also add, edit, or delete any
-        existing categories.
+        Understand your spending by category. You can also add, edit, or delete
+        any existing categories.
       </p>
     </div>
     <Button onclick={handleAdd}>

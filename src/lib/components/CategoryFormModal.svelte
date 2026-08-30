@@ -38,7 +38,9 @@
       if (mode === "edit" && category) {
         name = category.name;
         budgetText =
-          category.budget_cents !== null ? String(Math.round(category.budget_cents / 100)) : "";
+          category.budget_cents !== null
+            ? String(Math.round(category.budget_cents / 100))
+            : "";
         iconName = category.icon ?? null;
         hex = category.color;
       } else {
@@ -69,7 +71,12 @@
     }
 
     const budgetCents = parseDollarsToCents(budgetText);
-    const input = { name: trimmedName, color: hex, icon: iconName, budgetCents };
+    const input = {
+      name: trimmedName,
+      color: hex,
+      icon: iconName,
+      budgetCents,
+    };
 
     submitting = true;
     error = null;
@@ -93,7 +100,11 @@
   <form class="form" onsubmit={handleSubmit}>
     <div class="field">
       <label class="paragraph-bold" for="category-name">Name</label>
-      <TextInput id="category-name" bind:value={name} placeholder="Category name" />
+      <TextInput
+        id="category-name"
+        bind:value={name}
+        placeholder="Category name"
+      />
     </div>
 
     <div class="field">

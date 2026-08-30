@@ -4,8 +4,8 @@
 -->
 
 <script lang="ts">
-  import type { Snippet } from 'svelte';
-  import type { HTMLButtonAttributes } from 'svelte/elements';
+  import type { Snippet } from "svelte";
+  import type { HTMLButtonAttributes } from "svelte/elements";
 
   interface Props extends HTMLButtonAttributes {
     fullWidth?: boolean;
@@ -17,7 +17,7 @@
     fullWidth = false,
     color,
     children,
-    type = 'button',
+    type = "button",
     ...restProps
   }: Props = $props();
 </script>
@@ -45,7 +45,10 @@
     background-color: var(--pure-white);
     color: var(--grey-500);
     cursor: pointer;
-    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    transition:
+      background-color 0.15s ease,
+      color 0.15s ease,
+      border-color 0.15s ease;
   }
 
   .btn.custom-color {

@@ -2,7 +2,12 @@
   import Stepper from "$lib/components/Stepper.svelte";
   import AccountCard from "$lib/components/AccountCard.svelte";
   import InstitutionCard from "$lib/components/InstitutionCard.svelte";
-  import type { AccountsGetResponse, LinkedInstitution, PlaidAccount, PlaidItem } from "$lib/types";
+  import type {
+    AccountsGetResponse,
+    LinkedInstitution,
+    PlaidAccount,
+    PlaidItem,
+  } from "$lib/types";
   import { plaidApi } from "$lib/api/plaid";
   import Button from "$lib/components/Button.svelte";
   import { goto } from "$app/navigation";
@@ -33,12 +38,13 @@
       linkError = err as string;
     } finally {
       linking = false;
-
     }
   };
 
   const loadAccounts = async () => {
-    alreadyAddedAccounts = (await plaidApi.getAccountsOfItem(item_id)).map((a) => a.plaid_account_id);
+    alreadyAddedAccounts = (await plaidApi.getAccountsOfItem(item_id)).map(
+      (a) => a.plaid_account_id,
+    );
     accounts = await plaidApi.getAccountsOfItemFromPlaid(item_id);
   };
 
@@ -58,15 +64,15 @@
 
   const syncTransactions = async () => {
     numTransactions = await plaidApi.syncTransactions(item_id);
-  }
+  };
 
   const getAccountSubname = (account: PlaidAccount, item: PlaidItem) => {
     if (account.official_name == account.name) {
       return item.institution_name ?? "Account";
     }
 
-    return account.official_name ?? item.institution_name ?? "Account"
-  }
+    return account.official_name ?? item.institution_name ?? "Account";
+  };
 
   const steps = [
     {
@@ -86,8 +92,8 @@
 
         await plaidApi.addNewPlaidAccounts(
           accountsToSelect.filter((_, idx) => selectedAccounts.includes(idx)),
-          item_id
-        )
+          item_id,
+        );
       },
       onBack: () => {},
     },
@@ -96,40 +102,52 @@
       content: step3Content,
       canProceed: () => numTransactions !== null,
       onNext: async () => {
-        goto("/")
+        goto("/");
       },
       onBack: () => {},
     },
   ];
 
   const accountsToSelect: PlaidAccount[] = $derived.by(() => {
-     return accounts !== null 
-      ? accounts.accounts.filter(a => !alreadyAddedAccounts.includes(a.account_id))
+    return accounts !== null
+      ? accounts.accounts.filter(
+          (a) => !alreadyAddedAccounts.includes(a.account_id),
+        )
       : [];
   });
   const accountsAlreadyAdded: PlaidAccount[] = $derived.by(() => {
     return accounts !== null
-      ? accounts.accounts.filter(a => alreadyAddedAccounts.includes(a.account_id))
+      ? accounts.accounts.filter((a) =>
+          alreadyAddedAccounts.includes(a.account_id),
+        )
       : [];
-  })
+  });
 </script>
 
 {#snippet step1Content()}
   <div class="step-container">
     <div class="step-text-container">
       <h2 class="h2 step-title">Choose an institution</h2>
-      <p class="paragraph step-description">Pick an institution you've already linked to add more of its accounts, or link a new one through Plaid.</p>
-      <p class="paragraph step-note">Note: If you just created your Plaid account, institutions that use OAuth may not be available immediately. It can take up to a day for an institution to grant your Plaid account OAuth access. If this is the case, please try again in a few hours.</p>
+      <p class="paragraph step-description">
+        Pick an institution you've already linked to add more of its accounts,
+        or link a new one through Plaid.
+      </p>
+      <p class="paragraph step-note">
+        Note: If you just created your Plaid account, institutions that use
+        OAuth may not be available immediately. It can take up to a day for an
+        institution to grant your Plaid account OAuth access. If this is the
+        case, please try again in a few hours.
+      </p>
     </div>
 
     <div class="accounts-grid">
-      {#each institutions as institution}
+      {#each institutions as institution (institution.institution_id)}
         <InstitutionCard
           name={institution.institution_name}
           institutionId={institution.institution_id}
           accountCount={institution.account_count}
           selected={item_id === institution.item_id}
-          onClick={() => item_id = institution.item_id}
+          onClick={() => (item_id = institution.item_id)}
         />
       {/each}
       <InstitutionCard addNew name="" onClick={handleLink} loading={linking} />
@@ -141,7 +159,9 @@
     {#if import.meta.env.DEV}
       <!-- Dev-only: in `tauri dev` the pennyful:// deep link can't reach us, so
            finish the Hosted Link flow by hand. Prod uses the deep link. -->
-      <button class="link-btn" onclick={completeLinkDev}>Done with flow (dev)</button>
+      <button class="link-btn" onclick={completeLinkDev}
+        >Done with flow (dev)</button
+      >
     {/if}
   </div>
 {/snippet}
@@ -150,17 +170,22 @@
   <div class="step-container">
     <div class="step-text-container">
       <h2 class="h2">Select bank accounts</h2>
-      <p class="paragraph step-description">Select which accounts you want to add to Pennyful</p>
+      <p class="paragraph step-description">
+        Select which accounts you want to add to Pennyful
+      </p>
     </div>
-   
+
     {#if accounts !== null && alreadyAddedAccounts !== null}
       {#if accountsToSelect.length > 0}
         <div class="accounts-grid">
-          {#each accountsToSelect as account, idx}
+          {#each accountsToSelect as account, idx (account.name)}
             <AccountCard
               icon="mdi:bank"
               name={account.name}
-              subname={getAccountSubname(account, (accounts as AccountsGetResponse).item)}
+              subname={getAccountSubname(
+                account,
+                (accounts as AccountsGetResponse).item,
+              )}
               accountType={account.type}
               balance={account.balances.current}
               selected={selectedAccounts.includes(idx)}
@@ -168,25 +193,30 @@
                 if (selectedAccounts.includes(idx)) {
                   selectedAccounts = selectedAccounts.filter((i) => i !== idx);
                 } else {
-                  selectedAccounts.push(idx)
+                  selectedAccounts.push(idx);
                 }
               }}
             />
           {/each}
         </div>
       {:else}
-        <p class="paragraph step-description">No accounts found from this institution.</p>
+        <p class="paragraph step-description">
+          No accounts found from this institution.
+        </p>
       {/if}
       {#if accountsAlreadyAdded.length > 0}
         <div class="step-text-container">
           <h3 class="h3 step-subtitle">Already added</h3>
         </div>
         <div class="accounts-grid">
-          {#each accountsAlreadyAdded as account}
+          {#each accountsAlreadyAdded as account (account.name)}
             <AccountCard
               icon="mdi:bank"
               name={account.name}
-              subname={getAccountSubname(account, (accounts as AccountsGetResponse).item)}
+              subname={getAccountSubname(
+                account,
+                (accounts as AccountsGetResponse).item,
+              )}
               accountType={account.type}
               balance={account.balances.current}
               disabled
@@ -205,13 +235,24 @@
   <div class="step-container">
     <div class="step-text-container">
       <h2 class="h2 step-title">Sync Transactions</h2>
-      <p class="paragraph step-description">Sync transactions from the past 30 days with the button below.</p>
-      <p class="paragraph step-description">For Plaid to sync transactions, it must get permission from the financial institution which can take up to 30 minutes. If you don't see any transactions synced, come back to Pennyful in a bit and try again.</p>
-      <p class="paragraph step-description">Plaid pulls transaction data from its linked institutions between 1 to 4 times per day, so transactions displayed here may be up to a day behind.</p>
+      <p class="paragraph step-description">
+        Sync transactions from the past 30 days with the button below.
+      </p>
+      <p class="paragraph step-description">
+        For Plaid to sync transactions, it must get permission from the
+        financial institution which can take up to 30 minutes. If you don't see
+        any transactions synced, come back to Pennyful in a bit and try again.
+      </p>
+      <p class="paragraph step-description">
+        Plaid pulls transaction data from its linked institutions between 1 to 4
+        times per day, so transactions displayed here may be up to a day behind.
+      </p>
     </div>
     <Button onclick={syncTransactions}>Sync transactions</Button>
     {#if numTransactions !== null}
-      <p class="paragraph transactions-num">Synced {numTransactions} transactions.</p>
+      <p class="paragraph transactions-num">
+        Synced {numTransactions} transactions.
+      </p>
     {/if}
   </div>
 {/snippet}
@@ -272,7 +313,7 @@
   .transactions-num {
     margin: 0px;
     font-size: 12px;
-    color: var(--profit-green)
+    color: var(--profit-green);
   }
 
   .accounts-grid {
