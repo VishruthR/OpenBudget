@@ -12,9 +12,9 @@ const config = {
   },
   compilerOptions: {
     experimental: {
-      async: true
-    }
-  }
+      async: true,
+    },
+  },
 };
 
 export default config;
