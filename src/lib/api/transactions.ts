@@ -32,7 +32,6 @@ const updateTransactionCategory = async (transactionId: number, categoryId: numb
 }
 
 const getSpendingAndIncomeByDateRange = async (startDate: string, endDate: string): Promise<[number, number]> => {
-  console.log(startDate, endDate);
   return (await invoke("get_spending_and_income_by_date_range", { startDate, endDate })) as [number, number];
 }
 

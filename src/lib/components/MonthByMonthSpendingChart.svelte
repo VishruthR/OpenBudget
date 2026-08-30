@@ -1,5 +1,7 @@
 <!-- @component
-  TODO: Add docstring
+  This component renders the last twelve months of the user's spending and income.URLSearchParams
+  It categories all transactions in the `Income` category as income and all transactions
+  in other categories as `Spending`.
 -->
 
 <script lang="ts">
@@ -51,7 +53,7 @@
 
   // We convert to epoch milliseconds to enable proper equality comparisons between Dates
   const monthTimestamps = $derived(monthlyStats.map((d) => d.date.getTime()));
-  const amounts = $derived(monthlyStats.map((d) => [d.income, d.spending]).flat());
+  const amounts = $derived(monthlyStats.flatMap((d) => [d.income, d.spending]));
   const minAmount = $derived(Math.min(...amounts));
   const maxAmount = $derived(Math.max(...amounts));
 
@@ -60,7 +62,7 @@
     if (!date) return "tooltip-right";
 
     const idx = monthTimestamps.indexOf(date.getTime());
-    const horizontal = idx >= monthTimestamps.length - 3 ? "tooltip-left" : "tooltip-right";
+    const horizontal = idx <= 3 ? "tooltip-left" : "tooltip-right";
 
     const fraction = ((datum.amount ?? minAmount) - minAmount) / (maxAmount - minAmount || 1);
     const vertical = fraction > 0.7 ? "tooltip-bottom" : fraction < 0.3 ? "tooltip-top" : "";
