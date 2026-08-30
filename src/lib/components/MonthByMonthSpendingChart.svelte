@@ -1,5 +1,5 @@
 <!-- @component
-  This component renders the last twelve months of the user's spending and income.URLSearchParams
+  This component renders the last twelve months of the user's spending and income.
   It categories all transactions in the `Income` category as income and all transactions
   in other categories as `Spending`.
 -->
