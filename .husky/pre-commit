@@ -1,0 +1,6 @@
+npm run format
+npm run check
+npm run lint
+
+(cd src-tauri && cargo fmt)
+(cd src-tauri && cargo clippy)
