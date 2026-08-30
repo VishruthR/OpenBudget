@@ -13,6 +13,7 @@
   import CategoryPill from "$lib/components/CategoryPill.svelte";
   import BudgetInput from "$lib/components/BudgetInput.svelte";
   import { formatCentsAsDollars } from "$lib/utils/format";
+    import { SPECIAL_CATEGORIES } from "$lib/utils/constants";
 
   interface Props {
     categories: CategoryOverview[];
@@ -25,8 +26,6 @@
   let { categories, onBudgetChange, onEdit, onDelete, height }: Props = $props();
 
   let tableHeight = $derived(height ? height : "100%");
-
-  const UNCATEGORIZED = "Uncategorized";
 
   function hasBudget(category: CategoryOverview): boolean {
     return category.budget_cents !== null && category.budget_cents > 0;
@@ -82,7 +81,7 @@
             <span class={spentClass(category)}>{spentDisplay(category)}</span>
           </td>
           <td class="col-actions">
-            {#if category.name !== UNCATEGORIZED}
+            {#if !SPECIAL_CATEGORIES.includes(category.name)}
               <div class="actions">
                 <button
                   class="icon-button"

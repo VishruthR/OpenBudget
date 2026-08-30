@@ -1,18 +1,54 @@
 use crate::{plaid::types::PlaidTransaction, types::SortDir};
-use crate::types::{Transaction, TransactionWithAccount};
+use crate::types::{Cents, TransactionWithAccount};
+use chrono::NaiveDate;
 use ::plaid::model::RemovedTransaction;
 use sqlx::{Pool, QueryBuilder, Sqlite, SqliteConnection};
 use std::collections::HashMap;
 
-pub async fn get_transactions(
+pub async fn get_total_income_by_date_range(
     pool: &Pool<Sqlite>,
-    limit: Option<i64>,
-) -> Result<Vec<Transaction>, sqlx::Error> {
-    let query = "SELECT id, plaid_transaction_id, name, merchant_entity_id, amount_cents, date, pending, deleted_at, account_id, category_id FROM 'transaction' WHERE deleted_at IS NULL ORDER BY date, id LIMIT $1";
+    start_date: NaiveDate,
+    end_date: NaiveDate
+) -> Result<Cents, sqlx::Error> {
+    let query = r#"
+        SELECT
+            SUM(t.amount_cents) AS amount
+        FROM 'transaction' t
+        JOIN category c on t.category_id=c.id
+        WHERE c.name = 'Income' 
+            AND date(t.date) >= date($1) 
+            AND date(t.date) <= date($2)
+    "#;
 
-    // Negative value returns all rows
-    let lim = limit.unwrap_or(-1);
-    let res: Vec<Transaction> = sqlx::query_as(query).bind(lim).fetch_all(pool).await?;
+    let res: Cents = sqlx::query_scalar(query)
+        .bind(start_date)
+        .bind(end_date)
+        .fetch_one(pool)
+        .await?;
+
+    Ok(res)
+}
+
+pub async fn get_total_spending_by_date_range(
+    pool: &Pool<Sqlite>,
+    start_date: NaiveDate,
+    end_date: NaiveDate
+) -> Result<Cents, sqlx::Error> {
+    let query = r#"
+        SELECT
+            SUM(t.amount_cents) AS amount
+        FROM 'transaction' t
+        JOIN category c on t.category_id=c.id
+        WHERE c.name != 'Income' 
+            AND date(t.date) >= date($1) 
+            AND date(t.date) <= date($2)
+    "#;
+
+    let res: Cents = sqlx::query_scalar(query)
+        .bind(start_date)
+        .bind(end_date)
+        .fetch_one(pool)
+        .await?;
 
     Ok(res)
 }
@@ -203,7 +239,7 @@ pub async fn update_transaction_category(
 ) -> Result<(), sqlx::Error> {
     let mut tx = pool.begin().await?;
 
-    let res = sqlx::query(r#"UPDATE 'transaction' SET category_id=? WHERE id=?"#)
+    let _res = sqlx::query(r#"UPDATE 'transaction' SET category_id=? WHERE id=?"#)
         .bind(category_id)
         .bind(transaction_id)
         .execute(&mut *tx)
@@ -330,63 +366,12 @@ mod tests {
     use super::*;
     use crate::types::Cents;
     use chrono::NaiveDate;
-    use rust_decimal::dec;
 
-    fn get_expected_transactions() -> Vec<Transaction> {
-        vec![
-            Transaction::new(
-                1,
-                "TRANSACTION 1".to_owned(),
-                Cents(dec!(-5.77)),
-                NaiveDate::from_ymd_opt(2025, 12, 15).unwrap(),
-                1,
-                1,
-            ),
-            Transaction::new(
-                2,
-                "TRANSACTION 2".to_owned(),
-                Cents(dec!(-10.90)),
-                NaiveDate::from_ymd_opt(2025, 12, 16).unwrap(),
-                1,
-                1,
-            ),
-            Transaction::new(
-                4,
-                "TRANSACTION 4".to_owned(),
-                Cents(dec!(-0.70)),
-                NaiveDate::from_ymd_opt(2025, 12, 16).unwrap(),
-                1,
-                1,
-            ),
-            Transaction::new(
-                3,
-                "TRANSACTION 3".to_owned(),
-                Cents(dec!(-1.90)),
-                NaiveDate::from_ymd_opt(2025, 12, 17).unwrap(),
-                1,
-                1,
-            ),
-        ]
-    }
-
-    #[sqlx::test(fixtures(path = "../fixtures", scripts("transactions")))]
-    async fn test_get_transactions_all(
-        pool: Pool<Sqlite>,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        let transactions = get_transactions(&pool, None).await?;
-
-        assert_eq!(transactions, get_expected_transactions());
-        Ok(())
-    }
-
-    #[sqlx::test(fixtures(path = "../fixtures", scripts("transactions")))]
-    async fn test_get_transactions_limit(
-        pool: Pool<Sqlite>,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        let transactions = get_transactions(&pool, Some(2)).await?;
-
-        assert_eq!(transactions, get_expected_transactions()[..2]);
-        Ok(())
+    async fn all_transactions(
+        pool: &Pool<Sqlite>,
+    ) -> Result<Vec<TransactionWithAccount>, sqlx::Error> {
+        get_paginated_sorted_transactions(pool, &1, &10, &Some("name".to_owned()), &Some(SortDir::Asc))
+            .await
     }
 
     fn plaid_txn(
@@ -408,6 +393,45 @@ mod tests {
         )
     }
 
+    #[sqlx::test(fixtures(path = "../fixtures", scripts("transactions")))]
+    async fn get_income_by_date_range_calculates_correctly(
+        pool: Pool<Sqlite>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        // With no `Income` transactions, we should see 0
+        let start_date = NaiveDate::parse_from_str("2025-12-01", "%Y-%m-%d")?;
+        let end_date = NaiveDate::parse_from_str("2025-12-31", "%Y-%m-%d")?;
+        let income = get_total_income_by_date_range(&pool, start_date, end_date)
+            .await?;
+        assert_eq!(income, Cents::from_dollars_f64(0_f64).unwrap());
+        
+        update_transaction_category(&pool, 1, 2, 1).await?;
+        let income = get_total_income_by_date_range(&pool, start_date, end_date)
+            .await?;
+        assert_eq!(income, Cents::from_dollars_f64(-5.77_f64).unwrap());
+
+        Ok(())
+    }
+
+    #[sqlx::test(fixtures(path = "../fixtures", scripts("transactions")))]
+    async fn get_spending_by_date_range_calculates_correctly(
+        pool: Pool<Sqlite>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        // No transactions in date range should return 0
+        let start_date = NaiveDate::parse_from_str("2026-12-01", "%Y-%m-%d")?;
+        let end_date = NaiveDate::parse_from_str("2026-12-31", "%Y-%m-%d")?;
+        let income = get_total_spending_by_date_range(&pool, start_date, end_date)
+            .await?;
+        assert_eq!(income, Cents::from_dollars_f64(0_f64).unwrap());
+        
+        let start_date = NaiveDate::parse_from_str("2025-12-01", "%Y-%m-%d")?;
+        let end_date = NaiveDate::parse_from_str("2025-12-31", "%Y-%m-%d")?;
+        let income = get_total_spending_by_date_range(&pool, start_date, end_date)
+            .await?;
+        assert_eq!(income, Cents::from_dollars_f64(-19.27_f64).unwrap());
+
+        Ok(())
+    }
+
     #[sqlx::test(fixtures(path = "../fixtures", scripts("plaid_sync")))]
     async fn add_persists_new_transactions(
         pool: Pool<Sqlite>,
@@ -425,7 +449,7 @@ mod tests {
         .await?;
         assert_eq!(skipped, 0);
 
-        let transactions = get_transactions(&pool, None).await?;
+        let transactions = all_transactions(&pool).await?;
         assert_eq!(
             transactions
                 .iter()
@@ -468,7 +492,7 @@ mod tests {
         .await?;
         assert_eq!(second, 1);
 
-        let transactions = get_transactions(&pool, None).await?;
+        let transactions = all_transactions(&pool).await?;
         let matching: Vec<_> = transactions
             .iter()
             .filter(|t| t.plaid_transaction_id().as_deref() == Some("txn-1"))
@@ -502,7 +526,7 @@ mod tests {
         posted.date = NaiveDate::from_ymd_opt(2026, 1, 20).unwrap();
         modify_plaid_transactions(&mut conn, vec![posted]).await?;
 
-        let transactions = get_transactions(&pool, None).await?;
+        let transactions = all_transactions(&pool).await?;
         let txn = transactions
             .iter()
             .find(|t| t.plaid_transaction_id().as_deref() == Some("txn-1"))
@@ -536,7 +560,7 @@ mod tests {
         )
         .await?;
 
-        let transactions = get_transactions(&pool, None).await?;
+        let transactions = all_transactions(&pool).await?;
         assert!(
             transactions
                 .iter()
@@ -572,7 +596,7 @@ mod tests {
         );
 
         // Reassigning one to another category drops the uncategorized count.
-        update_transaction_category(&pool, 1, 4).await?;
+        update_transaction_category(&pool, 1, 4, 1).await?;
         assert_eq!(
             get_num_transactions_by_category(&pool, &"Uncategorized".to_owned()).await?,
             3
@@ -663,14 +687,7 @@ mod tests {
             .expect("transaction should exist")
     }
 
-    async fn all_transactions(
-        pool: &Pool<Sqlite>,
-    ) -> Result<Vec<TransactionWithAccount>, sqlx::Error> {
-        get_paginated_sorted_transactions(pool, &1, &10, &Some("name".to_owned()), &Some(SortDir::Asc))
-            .await
-    }
-
-    #[sqlx::test(fixtures(path = "../fixtures", scripts("transactions")))]
+        #[sqlx::test(fixtures(path = "../fixtures", scripts("transactions")))]
     async fn update_reassigns_and_overwrites_category(
         pool: Pool<Sqlite>,
     ) -> Result<(), Box<dyn std::error::Error>> {

@@ -112,4 +112,4 @@ interface DropdownOption {
     content?: Snippet;
 }
 
-export type { Category, CategoryDetails, CategoryOverview, Transaction, TransactionWithoutId, AccountType, Account, DropdownOption, PlaidAccount, PlaidItem, AccountsGetResponse, LinkedInstitution, TransactionWithAccount, PaginedSortedTransactionsResponse, FlashcardTransaction };
+export type { Category, CategoryDetails, CategoryOverview, MonthlyAmount, Transaction, TransactionWithoutId, AccountType, Account, DropdownOption, PlaidAccount, PlaidItem, AccountsGetResponse, LinkedInstitution, TransactionWithAccount, PaginedSortedTransactionsResponse, FlashcardTransaction };

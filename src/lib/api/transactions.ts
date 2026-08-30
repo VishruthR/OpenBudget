@@ -31,10 +31,15 @@ const updateTransactionCategory = async (transactionId: number, categoryId: numb
   await invoke("update_transaction_category", { transactionId, categoryId });
 }
 
+const getSpendingAndIncomeByDateRange = async (startDate: string, endDate: string): Promise<[number, number]> => {
+  return (await invoke("get_spending_and_income_by_date_range", { startDate, endDate })) as [number, number];
+}
+
 export const transactionsApi = {
   syncTransactions,
   getPaginatedSortedTransactions,
   updateTransactionCategory,
   getTransactionsByCategory,
-  getNumTransactionsByCategory
+  getNumTransactionsByCategory,
+  getSpendingAndIncomeByDateRange,
 }
