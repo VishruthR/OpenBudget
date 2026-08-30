@@ -685,24 +685,7 @@ mod tests {
             .expect("transaction should exist")
     }
 
-<<<<<<< HEAD
-        #[sqlx::test(fixtures(path = "../fixtures", scripts("transactions")))]
-=======
-    async fn all_transactions(
-        pool: &Pool<Sqlite>,
-    ) -> Result<Vec<TransactionWithAccount>, sqlx::Error> {
-        get_paginated_sorted_transactions(
-            pool,
-            &1,
-            &10,
-            &Some("name".to_owned()),
-            &Some(SortDir::Asc),
-        )
-        .await
-    }
-
     #[sqlx::test(fixtures(path = "../fixtures", scripts("transactions")))]
->>>>>>> 80c0e3b (Formatting + add ci)
     async fn update_reassigns_and_overwrites_category(
         pool: Pool<Sqlite>,
     ) -> Result<(), Box<dyn std::error::Error>> {
